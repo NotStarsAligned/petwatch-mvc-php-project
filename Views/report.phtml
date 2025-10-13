@@ -1,0 +1,58 @@
+<?php require('template/header.phtml') ?>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h1 class="mb-4">Report a Missing or Sighted Pet</h1>
+                <hr>
+
+                <?php if (isset($view->errorMessage)): ?>
+                    <div class="alert alert-danger"><?php echo $view->errorMessage; ?></div>
+                <?php endif; ?>
+
+                <?php if (isset($view->successMessage)): ?>
+                    <div class="alert alert-success"><?php echo $view->successMessage; ?></div>
+                    <p><a href="index.php" class="btn btn-outline-primary">Return to Listings</a></p>
+                <?php else: ?>
+
+                    <form method="post" action="report.php" class="card p-4 shadow-sm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Pet Name (or description if unknown):</label>
+                                <input type="text" name="name" id="name" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="type" class="form-label">Type (e.g., Dog, Cat, Bird):</label>
+                                <input type="text" name="type" id="type" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Status:</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="status" id="missing" value="Missing" checked>
+                                <label class="form-check-label" for="missing">Missing</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="status" id="sighted" value="Sighted">
+                                <label class="form-check-label" for="sighted">Sighted</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="location" class="form-label">Location (Last Seen or Sighted):</label>
+                            <textarea name="location" id="location" class="form-control" rows="3" required></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="index.php" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" name="report_submit" class="btn btn-success">Submit Report</button>
+                        </div>
+                    </form>
+
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+<?php require('template/footer.phtml') ?>

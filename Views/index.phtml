@@ -1,0 +1,65 @@
+<?php require('template/header.phtml') ?>
+
+    <div class="container mt-5">
+
+        <?php if (isset($view->loginMessage)): ?>
+            <div class="alert alert-success alert-sm p-1 d-flex justify-content-center"><?php echo $view->loginMessage; ?></div>
+        <?php endif; ?>
+
+        <div class="d-flex justify-content-end mb-4">
+            <?php if ($view->isLoggedIn): ?>
+                <div class="text-end d-flex align-items-center">
+                    <span class="me-3">Welcome, **<?php echo $view->username; ?>**</span>
+
+                    <form method="post" action="index.php" class="d-inline me-2">
+                        <button type="submit" name="logout" class="btn btn-sm btn-outline-secondary">Logout</button>
+                    </form>
+
+                    <a href="report.php" class="btn btn-sm btn-success">Report Pet</a>
+                </div>
+            <?php else: ?>
+                <a href="login.php" class="btn btn-sm btn-primary">Login to Report / Owner Access</a>
+            <?php endif; ?>
+        </div>
+
+        <hr>
+        <h3>Welcome to the petWatch web-site </h3>
+
+        <div class="alert alert-warning">
+            **NOTE:** This is the **DEV MODE**. Listings are hardcoded and reports are only stored in memory for this session.
+        </div>
+
+        <section id="pet-listings">
+            <h2>Latest Listings</h2>
+
+            <div class="row">
+                <?php if (empty($view->petList)): ?>
+                    <p>No pets have been reported yet.</p>
+                <?php endif; ?>
+
+                <?php
+                // Loop through the PetData objects
+                foreach ($view->petList as $pet):
+                    $status_class = ($pet->getStatus() === 'Missing') ? 'bg-danger-subtle border-danger' : 'bg-info-subtle border-info';
+                    $status_text_color = ($pet->getStatus() === 'Missing') ? 'text-danger' : 'text-primary';
+                    ?>
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 <?php echo $status_class; ?>">
+                            <div class="card-body">
+                                <h5 class="card-title"><?php echo $pet->getName(); ?> (<?php echo $pet->getType(); ?>)</h5>
+                                <p class="card-text">
+                                    **Status:** <span class="fw-bold <?php echo $status_text_color; ?>"><?php echo $pet->getStatus(); ?></span>
+                                    <br>
+                                    **Last Seen:** <?php echo $pet->getLocation(); ?>
+                                </p>
+                                <a href="#" class="btn btn-sm btn-outline-secondary">View Details (Placeholder)</a>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </section>
+
+    </div>
+
+<?php require('template/footer.phtml') ?>
