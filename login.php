@@ -12,7 +12,7 @@ $view->errorMessage = null;
 $userModel = new UserModel();
 
 // Redirect if already logged in
-if (isset($_SESSION['user_id'])) {
+if (isset($_SESSION['user_id']) && $userModel->getUsernameById((int)$_SESSION['user_id'])) {
     header('Location: index.php');
     exit;
 }
@@ -21,20 +21,21 @@ if (isset($_SESSION['user_id'])) {
 if (isset($_POST['login'])) {
     // Sanitize input
     $user = isset($_POST['username']) ? htmlspecialchars(trim($_POST['username'])) : '';
-    $pass = isset($_POST['password']) ? htmlspecialchars($_POST['password']) : '';
+    $pass = isset($_POST['password']) ? $_POST['password'] : '';
 
-    // Uses OOP Model for credential verification
+    // --- Real login logic using the database ---
     $userId = $userModel->verifyCredentials($user, $pass);
 
     if ($userId) {
+        // Login successful
         $_SESSION['user_id'] = $userId;
-        header('Location: index.php'); // PRG pattern redirect
+        header('Location: index.php'); // Redirect after login
         exit;
     } else {
-        $view->errorMessage = "Invalid username or password. (Try Lee/password or Zara/password)";
+        // Invalid credentials
+        $view->errorMessage = "Invalid username or password.";
     }
 }
 
 // 3. VIEW RENDERING
 require_once('Views/login.phtml');
-?>

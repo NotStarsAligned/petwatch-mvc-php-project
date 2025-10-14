@@ -1,23 +1,34 @@
 <?php
-// Model: Models/PetData.php - Represents a single pet entity object (ORM).
+// Models/PetData.php - The ORM Entity (Matches DB Schema)
 
 class PetData
 {
-    protected $id;
-    protected $name;
-    protected $type;
-    protected $status;
-    protected $location;
-    protected $contact_id;
+    // Properties are public for PDO hydration, nullable types noted with '?'
+    public ?int $id = null;
+    public string $name;
+    public string $species;
+    public ?string $breed = null;
+    public ?string $color = null;
+    public ?string $photo_url = null;
+    public string $status;
+    public ?string $description = null;
+    public string $date_reported;
+    public ?int $user_id = null;
 
-    // Accessor methods with return type hints
-    public function getID(): int { return $this->id; }
+    // Accessor Methods (Getters) for safe, encapsulated access
+    public function getId(): ?int { return $this->id; }
     public function getName(): string { return $this->name; }
-    public function getType(): string { return $this->type; }
+    public function getSpecies(): string { return $this->species; }
+    public function getBreed(): ?string { return $this->breed; }
+    public function getColor(): ?string { return $this->color; }
+    public function getPhotoUrl(): ?string { return $this->photo_url; }
     public function getStatus(): string { return $this->status; }
-    public function getLocation(): string { return $this->location; }
-    public function getContactId(): int { return $this->contact_id; }
+    public function getDescription(): ?string { return $this->description; }
+    public function getDateReported(): string { return $this->date_reported; }
+    public function getUserId(): ?int { return $this->user_id; }
 
-    // Magic method for populating protected properties from Model data
-    public function __set(string $name, $value) { $this->$name = $value; }
+    public function getFormattedReportDate(): string
+    {
+        return date('jS F Y', strtotime($this->date_reported));
+    }
 }

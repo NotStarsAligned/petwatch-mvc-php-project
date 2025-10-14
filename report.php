@@ -1,48 +1,70 @@
 <?php
-// Controller: report.php - Handles submitting a pet report.
+// Controller: report.php - Handles pet submission logic.
 session_start();
 
 require_once('Models/PetModel.php');
+require_once('Models/UserModel.php');
 
 // 1. SETUP AND INITIALIZATION
 $view = new stdClass();
 $view->pageTitle = 'Report a Pet';
-$view->errorMessage = null;
 $view->successMessage = null;
+$view->errorMessage = null;
 
-// Enforce login requirement (Access Control)
-if (!isset($_SESSION['user_id'])) {
+$petModel = new PetModel();
+$userModel = new UserModel();
+
+// SECURITY CHECK: Redirect if not logged in
+if (!isset($_SESSION['user_id']) || !$userModel->getUsernameById((int)$_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
 }
 
-$petModel = new PetModel();
-$userId = $_SESSION['user_id'];
+$currentUserId = (int)$_SESSION['user_id'];
 
-// 2. INPUT HANDLING (Handle Report Submission)
+// Check for a success message set in the session (PRG pattern cleanup)
+if (isset($_SESSION['report_message'])) {
+    $view->successMessage = $_SESSION['report_message'];
+    unset($_SESSION['report_message']);
+}
+
+// 2. INPUT HANDLING (Handle Report Submission via 'report_submit')
 if (isset($_POST['report_submit'])) {
 
-    // Sanitize and structure data
-    $reportData = [
-        'name'      => htmlspecialchars(trim($_POST['name'])),
-        'type'      => htmlspecialchars(trim($_POST['type'])),
-        'status'    => htmlspecialchars(trim($_POST['status'])),
-        'location'  => htmlspecialchars(trim($_POST['location'])),
-        'user_id'   => $userId
+    // Map form status (Missing/Sighted) to DB status (Lost/Found)
+    $statusMap = [
+        'Missing' => 'Lost',
+        'Sighted' => 'Found'
     ];
 
-    if (empty($reportData['name']) || empty($reportData['location'])) {
-        $view->errorMessage = "Please fill in all required fields.";
+    // Prepare data structure, mapping form inputs to DB schema
+    $data = [
+        'name' => htmlspecialchars(trim($_POST['name'] ?? '')),
+        'species' => htmlspecialchars(trim($_POST['type'] ?? '')), // 'type' -> 'species'
+        'breed' => null,
+        'color' => null,
+        'photo_url' => null,
+        'status' => $statusMap[($_POST['status'] ?? '')] ?? 'Unknown',
+        'description' => htmlspecialchars(trim($_POST['location'] ?? null)), // 'location' -> 'description'
+        'date_reported' => date('Y-m-d H:i:s'),
+        'user_id' => $currentUserId
+    ];
+
+    if (empty($data['name']) || empty($data['species']) || empty($_POST['status'])) {
+        $view->errorMessage = "Error: Pet Name, Type, and Status are required.";
     } else {
-        // Uses OOP Model to persist data (temporarily in memory)
-        if ($petModel->addPet($reportData)) {
-            $view->successMessage = "Report for '{$reportData['name']}' successfully submitted!";
+        $success = $petModel->addPet($data);
+
+        if ($success) {
+            // Success: Set message and redirect to prevent form resubmission
+            $_SESSION['report_message'] = "Pet report successfully submitted!";
+            header('Location: report.php');
+            exit;
         } else {
-            $view->errorMessage = "Error saving report to temporary storage.";
+            $view->errorMessage = "Error: Failed to save the pet report to the database.";
         }
     }
 }
 
 // 3. VIEW RENDERING
 require_once('Views/report.phtml');
-?>

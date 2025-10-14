@@ -9,9 +9,10 @@
         <div class="d-flex justify-content-end mb-4">
             <?php if ($view->isLoggedIn): ?>
                 <div class="text-end d-flex align-items-center">
-                    <span class="me-3">Welcome, **<?php echo $view->username; ?>**</span>
+                    <span class="me-3">Welcome, **<?php echo htmlspecialchars($view->username); ?>**</span>
 
                     <form method="post" action="index.php" class="d-inline me-2">
+                        <input type="hidden" name="logout" value="1">
                         <button type="submit" name="logout" class="btn btn-sm btn-outline-secondary">Logout</button>
                     </form>
 
@@ -25,32 +26,67 @@
         <hr>
         <h3>Welcome to the petWatch web-site </h3>
 
-        <div class="alert alert-warning">
-            **NOTE:** This is the **DEV MODE**. Listings are hardcoded and reports are only stored in memory for this session.
-        </div>
+        <section id="pet-search" class="mb-4 p-3 border rounded shadow-sm bg-light">
+            <h4>Filter Pet Listings</h4>
+            <form method="GET" action="index.php">
+                <input type="hidden" name="page" value="1">
+                <div class="row g-3 align-items-end">
+
+                    <div class="col-md-4">
+                        <label for="search_name" class="form-label">Name/Keyword:</label>
+                        <input type="text" id="search_name" name="search_name" class="form-control form-control-sm"
+                               value="<?= htmlspecialchars($view->searchParams['name']) ?>">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="search_type" class="form-label">Type (Species):</label>
+                        <input type="text" id="search_type" name="search_type" class="form-control form-control-sm"
+                               value="<?= htmlspecialchars($view->searchParams['species']) ?>">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="search_status" class="form-label">Status:</label>
+                        <select id="search_status" name="search_status" class="form-select form-select-sm">
+                            <option value="All" <?= ($view->searchParams['status'] == 'All') ? 'selected' : '' ?>>All</option>
+                            <option value="Missing" <?= ($view->searchParams['status'] == 'Missing') ? 'selected' : '' ?>>Missing</option>
+                            <option value="Sighted" <?= ($view->searchParams['status'] == 'Sighted') ? 'selected' : '' ?>>Sighted</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-sm btn-primary me-2">Search</button>
+                        <a href="index.php" class="btn btn-sm btn-outline-secondary">Clear</a>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <p class="mb-3 text-muted">Displaying <?= count($view->petList) ?> of <?= $view->totalItems ?> total results.</p>
 
         <section id="pet-listings">
-            <h2>Latest Listings</h2>
-
             <div class="row">
                 <?php if (empty($view->petList)): ?>
-                    <p>No pets have been reported yet.</p>
+                    <p class="text-center">No pets matching your criteria have been reported yet.</p>
                 <?php endif; ?>
 
                 <?php
-                // Loop through the PetData objects
                 foreach ($view->petList as $pet):
-                    $status_class = ($pet->getStatus() === 'Missing') ? 'bg-danger-subtle border-danger' : 'bg-info-subtle border-info';
-                    $status_text_color = ($pet->getStatus() === 'Missing') ? 'text-danger' : 'text-primary';
+                    // Use getStatus() accessor method
+                    $dbStatus = $pet->getStatus();
+                    $displayStatus = ($dbStatus === 'Lost') ? 'Missing' : 'Sighted';
+                    $status_class = ($dbStatus === 'Lost') ? 'bg-danger-subtle border-danger' : 'bg-info-subtle border-info';
+                    $status_text_color = ($dbStatus === 'Lost') ? 'text-danger' : 'text-primary';
                     ?>
                     <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card h-100 <?php echo $status_class; ?>">
+                        <div class="card h-100 <?php echo $status_class; ?> border-start border-4">
                             <div class="card-body">
-                                <h5 class="card-title"><?php echo $pet->getName(); ?> (<?php echo $pet->getType(); ?>)</h5>
+                                <h5 class="card-title"><?php echo htmlspecialchars($pet->getName()); ?> (<?php echo htmlspecialchars($pet->getSpecies()); ?>)</h5>
                                 <p class="card-text">
-                                    **Status:** <span class="fw-bold <?php echo $status_text_color; ?>"><?php echo $pet->getStatus(); ?></span>
+                                    <strong>Status:</strong> <span class="fw-bold <?php echo $status_text_color; ?>"><?php echo $displayStatus; ?></span>
                                     <br>
-                                    **Last Seen:** <?php echo $pet->getLocation(); ?>
+                                    <strong>Last Seen/Location:</strong> <?php echo htmlspecialchars($pet->getDescription() ?? 'Unknown Location'); ?>
+                                    <br>
+                                    <small class="text-muted">Reported: <?php echo $pet->getFormattedReportDate(); ?></small>
                                 </p>
                                 <a href="#" class="btn btn-sm btn-outline-secondary">View Details (Placeholder)</a>
                             </div>
@@ -59,6 +95,35 @@
                 <?php endforeach; ?>
             </div>
         </section>
+
+        <?php if ($view->totalPages > 1): ?>
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <?php
+                    // Base URL for links, preserving existing search parameters
+                    $baseUrl = 'index.php?' . http_build_query(array_filter([
+                                    'search_name' => $view->searchParams['name'],
+                                    'search_type' => $view->searchParams['species'],
+                                    'search_status' => $view->searchParams['status']
+                            ]));
+                    ?>
+
+                    <li class="page-item <?= ($view->currentPage <= 1) ? 'disabled' : '' ?>">
+                        <a class="page-link" href="<?= $baseUrl . '&page=' . max(1, $view->currentPage - 1) ?>">Previous</a>
+                    </li>
+
+                    <?php for ($i = 1; $i <= $view->totalPages; $i++): ?>
+                        <li class="page-item <?= ($i == $view->currentPage) ? 'active' : '' ?>">
+                            <a class="page-link" href="<?= $baseUrl . '&page=' . $i ?>"><?= $i ?></a>
+                        </li>
+                    <?php endfor; ?>
+
+                    <li class="page-item <?= ($view->currentPage >= $view->totalPages) ? 'disabled' : '' ?>">
+                        <a class="page-link" href="<?= $baseUrl . '&page=' . min($view->totalPages, $view->currentPage + 1) ?>">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        <?php endif; ?>
 
     </div>
 

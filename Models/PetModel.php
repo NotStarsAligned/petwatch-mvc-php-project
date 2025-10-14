@@ -1,51 +1,121 @@
 <?php
-// Model: Models/PetModel.php (HARDCODED VERSION - MODERN PHP)
+// Models/PetModel.php
 require_once('PetData.php');
+require_once('Database.php');
 
 class PetModel
 {
-    private array $petsData = [
-        ['id' => 101, 'name' => 'Whiskers', 'type' => 'Cat', 'status' => 'Missing', 'location' => 'Near Central Park', 'contact_id' => 1],
-        ['id' => 102, 'name' => 'Buddy', 'type' => 'Dog', 'status' => 'Sighted', 'location' => 'By Salford Bus Station', 'contact_id' => 2],
-    ];
-
-    private static array $temporaryStorage = [];
-
-    public function __construct()
+    private function getDbConnection(): PDO
     {
-        $this->petsData = array_merge($this->petsData, self::$temporaryStorage);
+        return Database::getInstance();
     }
 
-    public function getAllPets(): array
+    public function countAllPets(array $searchParams = []): int
     {
-        $dataSet = [];
-        // Convert raw array data into PetData objects (ORM)
-        foreach ($this->petsData as $row) {
-            $pet = new PetData();
-            foreach ($row as $key => $value) {
-                $pet->{$key} = $value;
-            }
-            $dataSet[] = $pet;
+        $db = $this->getDbConnection();
+        $where = [];
+        $params = [];
+
+        if (!empty($searchParams['name'])) {
+            $where[] = "name LIKE :name";
+            $params['name'] = '%' . $searchParams['name'] . '%';
         }
-        return $dataSet;
+        if (!empty($searchParams['species'])) {
+            $where[] = "species LIKE :species";
+            $params['species'] = '%' . $searchParams['species'] . '%';
+        }
+        if (!empty($searchParams['status']) && $searchParams['status'] !== 'All') {
+            $where[] = "status = :status";
+            $params['status'] = $searchParams['status'];
+        }
+
+        $sql = "SELECT COUNT(id) FROM pets";
+        if (!empty($where)) {
+            $sql .= " WHERE " . implode(" AND ", $where);
+        }
+
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+            return (int)$stmt->fetchColumn();
+        } catch (PDOException $e) {
+            error_log("Database Error in countAllPets: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    public function getAllPets(array $searchParams = [], int $limit = 10, int $offset = 0): array
+    {
+        $db = $this->getDbConnection();
+        $where = [];
+        $params = [];
+
+        if (!empty($searchParams['name'])) {
+            $where[] = "name LIKE :name";
+            $params['name'] = '%' . $searchParams['name'] . '%';
+        }
+        if (!empty($searchParams['species'])) {
+            $where[] = "species LIKE :species";
+            $params['species'] = '%' . $searchParams['species'] . '%';
+        }
+        if (!empty($searchParams['status']) && $searchParams['status'] !== 'All') {
+            if (strcasecmp($searchParams['status'], 'Missing') === 0) {
+                $where[] = "(status = 'Missing' OR status = 'Lost')";
+            } else {
+                $where[] = "status = :status";
+                $params['status'] = $searchParams['status'];
+            }
+        }
+
+
+        $sql = "SELECT id, name, species, breed, color, photo_url, status, description, date_reported, user_id 
+                FROM pets";
+
+        if (!empty($where)) {
+            $sql .= " WHERE " . implode(" AND ", $where);
+        }
+
+        $sql .= " ORDER BY date_reported DESC LIMIT :limit OFFSET :offset";
+
+        $params['limit'] = $limit;
+        $params['offset'] = $offset;
+
+        try {
+            $stmt = $db->prepare($sql);
+
+            foreach ($params as $key => &$val) {
+                if ($key === 'limit' || $key === 'offset') {
+                    $stmt->bindParam(":$key", $val, PDO::PARAM_INT);
+                } else {
+                    $stmt->bindValue(":$key", $val);
+                }
+            }
+            $stmt->execute();
+
+            $pets = $stmt->fetchAll(PDO::FETCH_CLASS, 'PetData');
+
+            return $pets;
+
+        } catch (PDOException $e) {
+            error_log("Database Error in getAllPets: " . $e->getMessage());
+            return [];
+        }
     }
 
     public function addPet(array $data): bool
     {
-        $newId = count($this->petsData) + count(self::$temporaryStorage) + 10;
+        $db = $this->getDbConnection();
 
-        $newReport = [
-            'id' => $newId,
-            'name' => $data['name'],
-            'type' => $data['type'],
-            'status' => $data['status'],
-            'location' => $data['location'],
-            'contact_id' => $data['user_id']
-        ];
+        try {
+            $sql = "INSERT INTO pets (name, species, breed, color, photo_url, status, description, date_reported, user_id) 
+                    VALUES (:name, :species, :breed, :color, :photo_url, :status, :description, :date_reported, :user_id)";
 
-        // Store in a static array (in-memory persistence for the session)
-        self::$temporaryStorage[] = $newReport;
+            $stmt = $db->prepare($sql);
+            return $stmt->execute($data);
 
-        return true;
+        } catch (PDOException $e) {
+            error_log("Database Error in addPet: " . $e->getMessage());
+            return false;
+        }
     }
 }
