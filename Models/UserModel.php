@@ -1,55 +1,63 @@
 <?php
-// Models/UserModel.php (Authentication Logic)
+// Models/UserModel.php
 require_once('Database.php');
 
 class UserModel
 {
+    /**
+     * Get the PDO connection from the Database singleton
+     * @return PDO
+     */
     private function getDbConnection(): PDO
     {
-        return Database::getInstance();
+        return Database::getInstance()->getdbConnection();
     }
 
+    /**
+     * Verifies username and password credentials
+     * Returns the user ID on success, or null on failure
+     */
     public function verifyCredentials(string $username, string $password): ?int
     {
         $db = $this->getDbConnection();
 
         try {
             $sql = "SELECT id, password_hash FROM users WHERE username = :username";
-
             $stmt = $db->prepare($sql);
             $stmt->execute(['username' => $username]);
+            $user = $stmt->fetch();
 
-            $userRow = $stmt->fetch();
-
-            if ($userRow) {
-                $hash = $userRow->password_hash;
-
-                // Allow both hashed and plain text matches
+            if ($user) {
+                $hash = $user->password_hash;
+                // Allow both hashed and plaintext passwords (for testing/dev)
                 if (password_verify($password, $hash) || $password === $hash) {
-                    return (int)$userRow->id;
+                    return (int)$user->id;
                 }
             }
 
             return null;
         } catch (PDOException $e) {
-            error_log("Database Error in verifyCredentials: " . $e->getMessage());
+            error_log("Database Error (verifyCredentials): " . $e->getMessage());
             return null;
         }
     }
 
+    /**
+     * Retrieves a username by their user ID
+     */
     public function getUsernameById(int $id): ?string
     {
         $db = $this->getDbConnection();
+
         try {
             $sql = "SELECT username FROM users WHERE id = :id";
             $stmt = $db->prepare($sql);
             $stmt->execute(['id' => $id]);
-            $result = $stmt->fetchColumn();
+            $username = $stmt->fetchColumn();
 
-            return $result ? (string)$result : null;
-
+            return $username ? (string)$username : null;
         } catch (PDOException $e) {
-            error_log("Database Error in getUsernameById: " . $e->getMessage());
+            error_log("Database Error (getUsernameById): " . $e->getMessage());
             return null;
         }
     }

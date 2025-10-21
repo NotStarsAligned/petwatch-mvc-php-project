@@ -11,6 +11,14 @@ $view->errorMessage = null;
 
 $userModel = new UserModel();
 
+// 2. HANDLE LOGOUT REQUEST (from header form)
+if (isset($_POST['logout'])) {
+    session_unset();     // remove all session variables
+    session_destroy();   // destroy session
+    header('Location: index.php');
+    exit;
+}
+
 // Redirect if already logged in
 if (isset($_SESSION['user_id']) && $userModel->getUsernameById((int)$_SESSION['user_id'])) {
     header('Location: index.php');

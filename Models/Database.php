@@ -1,33 +1,66 @@
 <?php
-// Models/Database.php - PDO Connection Singleton for SQLite
+// Models/Database.php
+// SQLite connection using Singleton pattern (Workshop-style)
 
-class Database
-{
-    private static ?PDO $dbConnection = null;
+class Database {
+    /**
+     * @var Database null
+     */
+    protected static $_dbInstance = null;
 
-    private function __construct() {}
+    /**
+     * @var PDOnull
+     */
+    protected $_dbHandle = null;
 
-    public static function getInstance(): PDO
-    {
-        if (self::$dbConnection == null) {
-
-            $databaseFile = 'petwatch.sqlite';
-            $path = __DIR__ . "/../{$databaseFile}";
-
-            if (!file_exists($path)) {
-                die("FATAL ERROR: Database file not found at path: {$path}.");
-            }
-
-            try {
-                self::$dbConnection = new PDO("sqlite:{$path}");
-                self::$dbConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                self::$dbConnection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
-
-            } catch (PDOException $e) {
-                die("Database connection failed: " . $e->getMessage());
-            }
+    /**
+     * Get an instance of the Database (Singleton pattern)
+     * @return Database
+     */
+    public static function getInstance(): Database {
+        if (self::$_dbInstance === null) {
+            self::$_dbInstance = new self();
         }
+        return self::$_dbInstance;
+    }
 
-        return self::$dbConnection;
+    /**
+     * Private constructor: creates the PDO connection
+     */
+    private function __construct() {
+        try {
+            // Correct path to your SQLite database file
+            $databaseFile = __DIR__ . '/../petwatch.sqlite';
+            if (!file_exists($databaseFile)) {
+                throw new Exception("Database file not found: " . $databaseFile);
+            }
+
+            // Initialize PDO connection
+            $this->_dbHandle = new PDO("sqlite:" . $databaseFile);
+            $this->_dbHandle->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->_dbHandle->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
+
+        } catch (PDOException $e) {
+            echo "Database connection failed: " . $e->getMessage();
+            exit;
+        } catch (Exception $e) {
+            echo "Error: " . $e->getMessage();
+            exit;
+        }
+    }
+
+    /**
+     * Returns the PDO database connection
+     * @return PDO
+     */
+    public function getdbConnection(): PDO {
+        return $this->_dbHandle;
+    }
+
+    /**
+     * Destructor: closes the PDO connection
+     */
+    public function __destruct() {
+        $this->_dbHandle = null;
     }
 }

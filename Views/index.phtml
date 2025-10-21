@@ -11,11 +11,6 @@
                 <div class="text-end d-flex align-items-center">
                     <span class="me-3">Welcome, **<?php echo htmlspecialchars($view->username); ?>**</span>
 
-                    <form method="post" action="index.php" class="d-inline me-2">
-                        <input type="hidden" name="logout" value="1">
-                        <button type="submit" name="logout" class="btn btn-sm btn-outline-secondary">Logout</button>
-                    </form>
-
                     <a href="report.php" class="btn btn-sm btn-success">Report Pet</a>
                 </div>
             <?php else: ?>
@@ -51,6 +46,7 @@
                             <option value="Missing" <?= ($view->searchParams['status'] == 'Missing') ? 'selected' : '' ?>>Missing</option>
                             <option value="Sighted" <?= ($view->searchParams['status'] == 'Sighted') ? 'selected' : '' ?>>Sighted</option>
                         </select>
+
                     </div>
 
                     <div class="col-md-2 d-flex justify-content-end">
