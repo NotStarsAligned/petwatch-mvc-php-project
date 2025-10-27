@@ -31,7 +31,7 @@ if (isset($_POST['login'])) {
     $user = isset($_POST['username']) ? htmlspecialchars(trim($_POST['username'])) : '';
     $pass = isset($_POST['password']) ? $_POST['password'] : '';
 
-    // --- Real login logic using the database ---
+    // Login logic this time, but it uses the database!!! waow
     $userId = $userModel->verifyCredentials($user, $pass);
 
     if ($userId) {

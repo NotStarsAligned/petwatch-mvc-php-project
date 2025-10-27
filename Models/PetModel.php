@@ -14,7 +14,7 @@ class PetModel
     }
 
     /**
-     * Counts the total number of pets (with optional search filters)
+     * Count all pets (with optional filters)
      */
     public function countAllPets(array $filters = []): int
     {
@@ -33,7 +33,7 @@ class PetModel
     }
 
     /**
-     * Retrieves a list of pets, filtered and paginated
+     * Get all pets with optional filters and pagination
      */
     public function getAllPets(array $filters = [], int $limit = 10, int $offset = 0): array
     {
@@ -46,16 +46,11 @@ class PetModel
 
         try {
             $stmt = $db->prepare($sql);
-
-            // Bind regular parameters
             foreach ($params as $key => $value) {
                 $stmt->bindValue(":$key", $value);
             }
-
-            // Bind pagination params
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
             $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-
             $stmt->execute();
 
             return $stmt->fetchAll(PDO::FETCH_CLASS, 'PetData');
@@ -66,7 +61,7 @@ class PetModel
     }
 
     /**
-     * Inserts a new pet report into the database
+     * Add new pet report
      */
     public function addPet(array $data): bool
     {
@@ -83,7 +78,51 @@ class PetModel
     }
 
     /**
-     * Builds the WHERE clause for search filters
+     * Fetch a single pet by ID
+     */
+    public function getPetById(int $id): ?PetData
+    {
+        $db = $this->getDbConnection();
+        try {
+            $stmt = $db->prepare("SELECT * FROM pets WHERE id = :id");
+            $stmt->execute(['id' => $id]);
+            $stmt->setFetchMode(PDO::FETCH_CLASS, 'PetData');
+            return $stmt->fetch() ?: null;
+        } catch (PDOException $e) {
+            error_log("Database Error (getPetById): " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Fetch a limited number of pets for quick preview
+     */
+    public function fetchSomePets(array $filters = [], int $limit = 5): array
+    {
+        $db = $this->getDbConnection();
+        [$where, $params] = $this->buildWhereClause($filters);
+
+        $sql = "SELECT id, name, species, status, description, date_reported 
+                FROM pets" . ($where ? " WHERE $where" : "") .
+            " ORDER BY date_reported DESC LIMIT :limit";
+
+        try {
+            $stmt = $db->prepare($sql);
+            foreach ($params as $key => $value) {
+                $stmt->bindValue(":$key", $value);
+            }
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+
+            return $stmt->fetchAll(PDO::FETCH_CLASS, 'PetData');
+        } catch (PDOException $e) {
+            error_log("Database Error (fetchSomePets): " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Build WHERE clause for filters
      */
     private function buildWhereClause(array $filters): array
     {

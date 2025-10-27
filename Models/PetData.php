@@ -1,9 +1,9 @@
 <?php
-// Models/PetData.php - The ORM Entity (Matches DB Schema)
+
 
 class PetData
 {
-    // Properties are public for PDO hydration, nullable types noted with '?'
+
     public ?int $id = null;
     public string $name;
     public string $species;
@@ -15,7 +15,7 @@ class PetData
     public string $date_reported;
     public ?int $user_id = null;
 
-    // Accessor Methods (Getters) for safe, encapsulated access
+    // Accessor Methods
     public function getId(): ?int { return $this->id; }
     public function getName(): string { return $this->name; }
     public function getSpecies(): string { return $this->species; }

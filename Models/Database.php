@@ -29,7 +29,7 @@ class Database {
      */
     private function __construct() {
         try {
-            // Correct path to your SQLite database file
+
             $databaseFile = __DIR__ . '/../petwatch.sqlite';
             if (!file_exists($databaseFile)) {
                 throw new Exception("Database file not found: " . $databaseFile);
