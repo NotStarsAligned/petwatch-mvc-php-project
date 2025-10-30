@@ -4,16 +4,16 @@
 class PetData
 {
 
-    public ?int $id = null;
-    public string $name;
-    public string $species;
-    public ?string $breed = null;
-    public ?string $color = null;
-    public ?string $photo_url = null;
-    public string $status;
-    public ?string $description = null;
-    public string $date_reported;
-    public ?int $user_id = null;
+    protected ?int $id = null;
+    protected string $name;
+    protected string $species;
+    protected ?string $breed = null;
+    protected ?string $color = null;
+    protected ?string $photo_url = null;
+    protected string $status;
+    protected ?string $description = null;
+    protected string $date_reported;
+    protected ?int $user_id = null;
 
     // Accessor Methods
     public function getId(): ?int { return $this->id; }

@@ -1,4 +1,4 @@
-<?php
+<?php // Script used to hash the passwords in the database!!!
 try {
     $db = new PDO('sqlite:petwatch.sqlite');
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

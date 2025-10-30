@@ -1,6 +1,5 @@
 <?php
 // Models/Database.php
-// SQLite connection using Singleton pattern (Workshop-style)
 
 class Database {
     /**
