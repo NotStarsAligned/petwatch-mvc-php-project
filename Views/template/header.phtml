@@ -20,31 +20,52 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <div class="collapse navbar-collapse" id="navbarCollapse">
-                <ul class="navbar-nav me-auto mb-2 mb-md-0">
+            <?php
+            $currentPage = basename($_SERVER['PHP_SELF']);
+            $isLoggedIn = !empty($_SESSION['user_id']);
+            $userRole = $_SESSION['role'] ?? null;
+            ?>
+
+            <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
+                <!-- LEFT SIDE  -->
+                <ul class="navbar-nav mb-2 mb-md-0">
                     <li class="nav-item">
-                        <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : '' ?>" href="index.php">Home</a>
+                        <a class="nav-link <?= $currentPage === 'index.php' ? 'active' : '' ?>" href="index.php">Home</a>
                     </li>
-                    <?php if (!empty($_SESSION['user_id'])): ?>
+
+                    <?php if ($isLoggedIn): ?>
                         <li class="nav-item">
-                            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'report.php' ? 'active' : '' ?>" href="report.php">Report Pet</a>
+                            <a class="nav-link <?= $currentPage === 'report.php' ? 'active' : '' ?>" href="report.php">Report Sighting</a>
+                        </li>
+
+                        <?php if ($userRole === 'admin'): ?>
+                            <li class="nav-item">
+                                <a class="nav-link <?= $currentPage === 'add_pet.php' ? 'active' : '' ?>" href="add_pet.php">Add Pet</a>
+                            </li>
+                        <?php endif; ?>
+
+                        <li class="nav-item">
+                            <a class="nav-link <?= $currentPage === 'pets.php' ? 'active' : '' ?>" href="pets.php">View Pets</a>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= $currentPage === 'login.php' ? 'active' : '' ?>" href="login.php">Login</a>
                         </li>
                     <?php endif; ?>
                 </ul>
 
-                <div class="d-flex align-items-center">
-                    <?php if (!empty($_SESSION['user_id'])): ?>
+                <!-- RIGHT SIDE -->
+                <?php if ($isLoggedIn): ?>
+                    <div class="d-flex align-items-center ms-auto">
                         <span class="navbar-text text-white me-3">
                             Welcome, <?= htmlspecialchars($view->username ?? 'User') ?>
                         </span>
-                        <form method="post" action="login.php" class="d-inline">
+                        <form method="post" action="login.php" class="d-inline m-0">
                             <input type="hidden" name="logout" value="1">
                             <button class="btn btn-outline-light btn-sm" type="submit">Logout</button>
                         </form>
-                    <?php else: ?>
-                        <a href="login.php" class="btn btn-outline-light btn-sm">Login</a>
-                    <?php endif; ?>
-                </div>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </nav>
