@@ -151,4 +151,38 @@ class PetModel
 
         return [implode(' AND ', $where), $params];
     }
+
+    public function addOwnedPet(array $data): bool
+    {
+        $db = $this->getDbConnection();
+        $sql = "INSERT INTO pets (name, species, breed, color, photo_url, description, user_id)
+            VALUES (:name, :species, :breed, :color, :photo_url, :description, :user_id)";
+        try {
+            $stmt = $db->prepare($sql);
+            return $stmt->execute($data);
+        } catch (PDOException $e) {
+            error_log("Database Error (addOwnedPet): " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function getPetsByOwner(int $userId): array
+    {
+        $db = $this->getDbConnection();
+        $sql = "SELECT id, name, species, breed, color, photo_url, description, date_reported
+            FROM pets
+            WHERE user_id = :user_id
+            ORDER BY date_reported DESC";
+
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->execute([':user_id' => $userId]);
+            return $stmt->fetchAll(PDO::FETCH_OBJ);
+        } catch (PDOException $e) {
+            error_log("Database Error (getPetsByOwner): " . $e->getMessage());
+            return [];
+        }
+    }
+
+
 }

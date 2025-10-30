@@ -61,4 +61,16 @@ class UserModel
             return null;
         }
     }
+
+    public function getRoleById(int $userId): ?string
+    {
+        $db = Database::getInstance()->getdbConnection();
+
+        $sql = "SELECT role FROM users WHERE id = :id LIMIT 1";
+        $stmt = $db->prepare($sql);
+        $stmt->execute([':id' => $userId]);
+        $role = $stmt->fetchColumn();
+
+        return $role ?: null;
+    }
 }

@@ -1,0 +1,48 @@
+<?php require('template/header.phtml'); ?>
+
+<div class="container mt-4">
+    <h3 class="mb-4">All Registered Pets</h3>
+
+    <?php if (empty($view->pets)): ?>
+        <div class="alert alert-info">No pets have been registered yet.</div>
+    <?php else: ?>
+        <div class="row">
+            <?php foreach ($view->pets as $pet): ?>
+                <?php
+                $status = $pet->getStatus();
+                $statusText = ($status === 'Lost') ? 'Missing' : (($status === 'Found') ? 'Sighted' : ucfirst($status));
+                $statusClass = ($status === 'Lost') ? 'border-danger' : 'border-info';
+                $statusColor = ($status === 'Lost') ? 'text-danger' : 'text-primary';
+                ?>
+
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 <?= $statusClass ?> border-start border-4 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <?= htmlspecialchars($pet->getName()) ?>
+                                (<?= htmlspecialchars($pet->getSpecies()) ?>)
+                            </h5>
+
+                            <p class="card-text mb-1">
+                                <strong>Status:</strong>
+                                <span class="<?= $statusColor ?> fw-bold"><?= $statusText ?></span>
+                            </p>
+
+                            <p class="card-text mb-1">
+                                <strong>Breed:</strong> <?= htmlspecialchars($pet->getBreed() ?: 'Unknown') ?><br>
+                                <strong>Color:</strong> <?= htmlspecialchars($pet->getColor() ?: 'Unknown') ?><br>
+                                <strong>Location:</strong> <?= htmlspecialchars($pet->getDescription() ?: 'Not provided') ?>
+                            </p>
+
+                            <small class="text-muted">
+                                Reported on <?= htmlspecialchars($pet->getFormattedReportDate()) ?>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</div>
+
+<?php require('template/footer.phtml'); ?>
