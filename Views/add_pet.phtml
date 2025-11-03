@@ -1,0 +1,62 @@
+<?php require('template/header.phtml'); ?>
+
+<div class="container mt-5">
+    <h2>Add a New Pet</h2>
+    <hr>
+
+    <?php if ($view->errorMessage): ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($view->errorMessage); ?></div>
+    <?php endif; ?>
+
+    <?php if ($view->successMessage): ?>
+        <div class="alert alert-success"><?= htmlspecialchars($view->successMessage); ?></div>
+    <?php endif; ?>
+
+    <form method="post" action="add_pet.php" class="card p-4 shadow-sm">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Pet Name</label>
+                <input type="text" name="name" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Species</label>
+                <input type="text" name="species" class="form-control" required>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Breed</label>
+                <input type="text" name="breed" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Color</label>
+                <input type="text" name="color" class="form-control">
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Photo URL</label>
+            <input type="text" name="photo_url" class="form-control">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-control" rows="3"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select">
+                <option value="lost">Lost</option>
+                <option value="found">Found</option>
+            </select>
+        </div>
+
+        <div class="d-flex justify-content-end">
+            <button type="submit" name="submit_pet" class="btn btn-success">Add Pet</button>
+        </div>
+    </form>
+</div>
+
+<?php require('template/footer.phtml'); ?>

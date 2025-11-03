@@ -29,8 +29,8 @@ class UserModel
 
             if ($user) {
                 $hash = $user->password_hash;
-                // Allow both hashed and plaintext passwords (for testing/dev)
-                if (password_verify($password, $hash) || $password === $hash) {
+                // no longer allowing plaintext wonderhoy
+                if (password_verify($password, $hash)) {
                     return (int)$user->id;
                 }
             }
@@ -60,5 +60,17 @@ class UserModel
             error_log("Database Error (getUsernameById): " . $e->getMessage());
             return null;
         }
+    }
+
+    public function getRoleById(int $userId): ?string
+    {
+        $db = Database::getInstance()->getdbConnection();
+
+        $sql = "SELECT role FROM users WHERE id = :id LIMIT 1";
+        $stmt = $db->prepare($sql);
+        $stmt->execute([':id' => $userId]);
+        $role = $stmt->fetchColumn();
+
+        return $role ?: null;
     }
 }

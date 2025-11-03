@@ -8,6 +8,8 @@ require_once('Models/UserModel.php');
 $view = new stdClass();
 $view->pageTitle = 'User Login';
 $view->errorMessage = null;
+$view->successMessage = null;
+$view->loginMessage = null;
 
 $userModel = new UserModel();
 
@@ -25,25 +27,33 @@ if (isset($_SESSION['user_id']) && $userModel->getUsernameById((int)$_SESSION['u
     exit;
 }
 
-// 2. INPUT HANDLING (Handle Login Submission)
+// 3. INPUT HANDLING (Handle Login Submission)
 if (isset($_POST['login'])) {
     // Sanitize input
     $user = isset($_POST['username']) ? htmlspecialchars(trim($_POST['username'])) : '';
     $pass = isset($_POST['password']) ? $_POST['password'] : '';
 
-    // --- Real login logic using the database ---
+    // Verify credentials
     $userId = $userModel->verifyCredentials($user, $pass);
 
     if ($userId) {
-        // Login successful
+
         $_SESSION['user_id'] = $userId;
-        header('Location: index.php'); // Redirect after login
-        exit;
+        $userRole = $userModel->getRoleById($userId);
+        $_SESSION['role'] = $userRole;
+
+        $actualUsername = $userModel->getUsernameById($userId);
+
+        $view->successMessage = "Login successful! Welcome, <strong>"
+            . htmlspecialchars($actualUsername) . "</strong>. "
+            . "You can now <a href='index.php'>go to the homepage</a>.";
+
+
     } else {
         // Invalid credentials
         $view->errorMessage = "Invalid username or password.";
     }
 }
 
-// 3. VIEW RENDERING
+// 4. VIEW RENDERING
 require_once('Views/login.phtml');

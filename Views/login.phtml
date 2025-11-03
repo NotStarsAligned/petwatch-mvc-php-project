@@ -10,6 +10,14 @@
                         <div class="alert alert-danger"><?= htmlspecialchars($view->errorMessage) ?></div>
                     <?php endif; ?>
 
+                    <?php if (!empty($view->logoutMessage)): ?>
+                        <div class="alert alert-info"><?= $view->logoutMessage ?></div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($view->successMessage)): ?>
+                        <div class="alert alert-success"><?= $view->successMessage ?></div>
+                    <?php endif; ?>
+
                     <form method="POST" action="login.php">
                         <div class="mb-3">
                             <label for="username" class="form-label">Username:</label>
