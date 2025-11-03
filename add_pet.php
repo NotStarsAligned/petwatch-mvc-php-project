@@ -14,6 +14,10 @@ $view->successMessage = null;
 $userModel = new UserModel();
 $petModel = new PetModel();
 
+// --- Template Init ---
+require_once('template_init.php');
+
+
 // --- SECURITY CHECK ---
 if (!isset($_SESSION['user_id']) || !$userModel->getUsernameById((int)$_SESSION['user_id'])) {
     header('Location: login.php');

@@ -139,7 +139,6 @@ class PetModel
     /**
      * Now, you won't believe me when I say this but, it lets you add pets...
      *
-     *
      */
     public function addPet(array $data): bool
     {

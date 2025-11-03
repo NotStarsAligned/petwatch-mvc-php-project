@@ -5,6 +5,7 @@ class PetData
 {
 
     protected ?int $id = null;
+
     protected string $name;
     protected string $species;
     protected ?string $breed = null;

@@ -8,6 +8,8 @@ require_once('Models/UserModel.php');
 $view = new stdClass();
 $view->pageTitle = 'User Login';
 $view->errorMessage = null;
+$view->successMessage = null;
+$view->loginMessage = null;
 
 $userModel = new UserModel();
 
@@ -37,13 +39,16 @@ if (isset($_POST['login'])) {
     if ($userId) {
 
         $_SESSION['user_id'] = $userId;
-
-
         $userRole = $userModel->getRoleById($userId);
         $_SESSION['role'] = $userRole;
 
-        header('Location: index.php'); // Redirect after login
-        exit;
+        $actualUsername = $userModel->getUsernameById($userId);
+
+        $view->successMessage = "Login successful! Welcome, <strong>"
+            . htmlspecialchars($actualUsername) . "</strong>. "
+            . "You can now <a href='index.php'>go to the homepage</a>.";
+
+
     } else {
         // Invalid credentials
         $view->errorMessage = "Invalid username or password.";

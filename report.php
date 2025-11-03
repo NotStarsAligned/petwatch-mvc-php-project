@@ -2,6 +2,7 @@
 // Controller: report.php - Handles sighting submissions
 session_start();
 
+
 require_once('Models/SightingModel.php');
 require_once('Models/UserModel.php');
 require_once('Models/PetModel.php');
@@ -15,6 +16,10 @@ $view->successMessage = null;
 $userModel = new UserModel();
 $petModel = new PetModel();
 $sightingModel = new SightingModel();
+
+// --- Template Init ---
+require_once('template_init.php');
+
 
 // --- SECURITY CHECK (must be logged in to report) ---
 if (!isset($_SESSION['user_id']) || !$userModel->getUsernameById((int)$_SESSION['user_id'])) {
@@ -39,7 +44,7 @@ if (isset($_POST['report_submit'])) {
     if (empty($petId) || empty($comment) || empty($latitude) || empty($longitude)) {
         $view->errorMessage = "Error: All fields are required (pet, comment, and coordinates).";
     } else {
-        // Insert sighting into DB
+        // Inserts the sighting into the funny database
         $success = $sightingModel->addSighting([
             'pet_id' => $petId,
             'user_id' => $currentUserId,
@@ -51,8 +56,6 @@ if (isset($_POST['report_submit'])) {
 
         if ($success) {
             $_SESSION['report_message'] = "Sighting report successfully submitted!";
-            header('Location: report.php');
-            exit;
         } else {
             $view->errorMessage = "Database error: Failed to save sighting report.";
         }

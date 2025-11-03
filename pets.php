@@ -2,6 +2,7 @@
 // Controller: pets.php - Lists all pets
 session_start();
 
+
 require_once('Models/UserModel.php');
 require_once('Models/PetModel.php');
 
@@ -14,23 +15,28 @@ $view->pets = [];
 $userModel = new UserModel();
 $petModel = new PetModel();
 
+// --- Template Init ---
+require_once('template_init.php');
+
 // --- SECURITY CHECK ---
+// When you're not logged in, you get SENT TO INDEX FOR LIFE!!! (also a good way to filter out non-admins :D)
 if (!isset($_SESSION['user_id']) || !$userModel->getUsernameById((int)$_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
 }
 
+// Responsible for checking if you have the right role!!
 $userRole = $userModel->getRoleById((int)$_SESSION['user_id']);
 
 $_SESSION['role'] = $userRole;
 if ($userRole !== 'admin') {
     $view->errorMessage = "Access denied. Only owners can add pets.";
-    require_once('Views/pets.phtml');
+    require_once('Views/pets.phtml'); // This actually updates the pets page so it hides it when you have the incorrect perms
 }
 
 
 
-// --- DELETE PETS ---
+// Deletes a pet!!
 
 if(isset($_POST['delete_pet']) && isset($_POST['id'])) {
     $petID = $_POST['id'];
