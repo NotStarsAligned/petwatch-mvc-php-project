@@ -61,23 +61,6 @@ class PetModel
     }
 
     /**
-     * Add new pet report
-     */
-    public function addPet(array $data): bool
-    {
-        $db = $this->getDbConnection();
-        $sql = "INSERT INTO pets (name, species, breed, color, photo_url, status, description, date_reported, user_id)
-                VALUES (:name, :species, :breed, :color, :photo_url, :status, :description, :date_reported, :user_id)";
-        try {
-            $stmt = $db->prepare($sql);
-            return $stmt->execute($data);
-        } catch (PDOException $e) {
-            error_log("Database Error (addPet): " . $e->getMessage());
-            return false;
-        }
-    }
-
-    /**
      * Fetch a single pet by ID
      */
     public function getPetById(int $id): ?PetData
@@ -122,7 +105,7 @@ class PetModel
     }
 
     /**
-     * Build WHERE clause for filters
+     * Build WHERE clause for filters which comes in handy because, I like searching for things I think
      */
     private function buildWhereClause(array $filters): array
     {
@@ -141,8 +124,8 @@ class PetModel
 
         if (!empty($filters['status']) && $filters['status'] !== 'All') {
             $mapped = match ($filters['status']) {
-                'Missing' => 'Lost',
-                'Sighted' => 'Found',
+                'Missing' => 'lost',
+                'Sighted' => 'found',
                 default => $filters['status']
             };
             $where[] = "status = :status";
@@ -152,11 +135,17 @@ class PetModel
         return [implode(' AND ', $where), $params];
     }
 
-    public function addOwnedPet(array $data): bool
+
+    /**
+     * Now, you won't believe me when I say this but, it lets you add pets...
+     *
+     *
+     */
+    public function addPet(array $data): bool
     {
         $db = $this->getDbConnection();
-        $sql = "INSERT INTO pets (name, species, breed, color, photo_url, description, user_id)
-            VALUES (:name, :species, :breed, :color, :photo_url, :description, :user_id)";
+        $sql = "INSERT INTO pets (name, species, breed, color, photo_url, status, description, date_reported, user_id)
+            VALUES (:name, :species, :breed, :color, :photo_url, :status, :description, :date_reported, :user_id)";
         try {
             $stmt = $db->prepare($sql);
             return $stmt->execute($data);
@@ -166,23 +155,18 @@ class PetModel
         }
     }
 
-    public function getPetsByOwner(int $userId): array
+    public function deletePet(int $id): bool
     {
         $db = $this->getDbConnection();
-        $sql = "SELECT id, name, species, breed, color, photo_url, description, date_reported
-            FROM pets
-            WHERE user_id = :user_id
-            ORDER BY date_reported DESC";
+        $sql = "DELETE FROM pets WHERE id = :id";
 
-        try {
+        try{
             $stmt = $db->prepare($sql);
-            $stmt->execute([':user_id' => $userId]);
-            return $stmt->fetchAll(PDO::FETCH_OBJ);
+            return $stmt->execute(['id' => $id]);
         } catch (PDOException $e) {
-            error_log("Database Error (getPetsByOwner): " . $e->getMessage());
-            return [];
+            error_log("Database Error (deleteOwnedPet): " . $e->getMessage());
+            return false;
         }
     }
-
 
 }

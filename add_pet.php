@@ -26,27 +26,28 @@ $userRole = $userModel->getRoleById($currentUserId);
 if ($userRole !== 'admin') {
     $view->errorMessage = "Access denied. Only owners can add pets.";
     require_once('Views/add_pet.phtml');
-    exit;
 }
 
 // --- HANDLE FORM SUBMISSION ---
 if (isset($_POST['submit_pet'])) {
     $data = [
-        'name' => htmlspecialchars(trim($_POST['name'] ?? '')),
-        'species' => htmlspecialchars(trim($_POST['species'] ?? '')),
-        'breed' => htmlspecialchars(trim($_POST['breed'] ?? '')),
-        'color' => htmlspecialchars(trim($_POST['color'] ?? '')),
-        'photo_url' => htmlspecialchars(trim($_POST['photo_url'] ?? '')),
-        'description' => htmlspecialchars(trim($_POST['description'] ?? '')),
-        'user_id' => $currentUserId
+        'name'          => htmlspecialchars(trim($_POST['name'] ?? '')),
+        'species'       => htmlspecialchars(trim($_POST['species'] ?? '')),
+        'breed'         => htmlspecialchars(trim($_POST['breed'] ?? '')),
+        'color'         => htmlspecialchars(trim($_POST['color'] ?? '')),
+        'photo_url'     => htmlspecialchars(trim($_POST['photo_url'] ?? '')),
+        'status'        => htmlspecialchars(trim($_POST['status'] ?? '')),
+        'description'   => htmlspecialchars(trim($_POST['description'] ?? '')),
+        'date_reported' => date('Y-m-d H:i:s'),
+        'user_id'       => $currentUserId
     ];
 
     if (empty($data['name']) || empty($data['species'])) {
         $view->errorMessage = "Error: Pet name and species are required.";
-    } elseif ($petModel->addOwnedPet($data)) {
+    } elseif ($petModel->addPet($data)) {
         $view->successMessage = "Pet successfully added!";
     } else {
-        $view->errorMessage = "Failed to save pet.";
+        $view->errorMessage = "Failed to save pet. Please check your database connection.";
     }
 }
 

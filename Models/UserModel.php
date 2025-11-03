@@ -29,8 +29,8 @@ class UserModel
 
             if ($user) {
                 $hash = $user->password_hash;
-                // Allow both hashed and plaintext passwords (for testing/dev)
-                if (password_verify($password, $hash) || $password === $hash) {
+                // no longer allowing plaintext wonderhoy
+                if (password_verify($password, $hash)) {
                     return (int)$user->id;
                 }
             }

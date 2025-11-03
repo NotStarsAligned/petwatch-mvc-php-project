@@ -3,6 +3,15 @@
 <div class="container mt-4">
     <h3 class="mb-4">All Registered Pets</h3>
 
+    <!-- Success / Error Alerts -->
+    <?php if (!empty($view->successMessage)): ?>
+        <div class="alert alert-success"><?= htmlspecialchars($view->successMessage) ?></div>
+    <?php endif; ?>
+
+    <?php if (!empty($view->errorMessage)): ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($view->errorMessage) ?></div>
+    <?php endif; ?>
+
     <?php if (empty($view->pets)): ?>
         <div class="alert alert-info">No pets have been registered yet.</div>
     <?php else: ?>
@@ -38,6 +47,20 @@
                                 Reported on <?= htmlspecialchars($pet->getFormattedReportDate()) ?>
                             </small>
                         </div>
+
+                        <!-- Delete Button for Admins -->
+                        <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+                            <div class="card-footer bg-transparent border-top d-flex justify-content-end">
+                                <form action="pets.php" method="post" class="m-0">
+                                    <input type="hidden" name="id" value="<?= $pet->getId() ?>">
+                                    <button type="submit" name="delete_pet"
+                                            class="btn btn-sm btn-danger"
+                                            onclick="return confirm('Are you sure you want to delete this pet?');">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             <?php endforeach; ?>

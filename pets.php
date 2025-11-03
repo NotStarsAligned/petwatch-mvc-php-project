@@ -20,8 +20,29 @@ if (!isset($_SESSION['user_id']) || !$userModel->getUsernameById((int)$_SESSION[
     exit;
 }
 
+$userRole = $userModel->getRoleById((int)$_SESSION['user_id']);
+
+$_SESSION['role'] = $userRole;
+if ($userRole !== 'admin') {
+    $view->errorMessage = "Access denied. Only owners can add pets.";
+    require_once('Views/pets.phtml');
+}
+
+
+
+// --- DELETE PETS ---
+
+if(isset($_POST['delete_pet']) && isset($_POST['id'])) {
+    $petID = $_POST['id'];
+    if ($petModel->deletePet($petID)) {
+        $view->successMessage = 'The pet was successfully deleted.';
+    } else {
+        $view->errorMessage = 'The pet was not deleted. Please try again.';
+    }
+}
+
 // --- DATA FETCH ---
-$view->pets = $petModel->getAllPets(); // fetch all pets (limit to 100 for safety)
+$view->pets = $petModel->getAllPets(); // fetch all pets
 
 // --- RENDER VIEW ---
 require_once('Views/pets.phtml');

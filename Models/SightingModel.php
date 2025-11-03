@@ -32,8 +32,8 @@ class SightingModel
 
         if (!empty($filters['status']) && $filters['status'] !== 'All') {
             $mapped = match ($filters['status']) {
-                'Missing' => 'Lost',
-                'Sighted' => 'Found',
+                'Missing' => 'lost',
+                'Sighted' => 'found',
                 default => $filters['status']
             };
             $where[] = "p.status = :status";

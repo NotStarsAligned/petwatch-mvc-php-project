@@ -25,18 +25,23 @@ if (isset($_SESSION['user_id']) && $userModel->getUsernameById((int)$_SESSION['u
     exit;
 }
 
-// 2. INPUT HANDLING (Handle Login Submission)
+// 3. INPUT HANDLING (Handle Login Submission)
 if (isset($_POST['login'])) {
     // Sanitize input
     $user = isset($_POST['username']) ? htmlspecialchars(trim($_POST['username'])) : '';
     $pass = isset($_POST['password']) ? $_POST['password'] : '';
 
-    // Login logic this time, but it uses the database!!! waow
+    // Verify credentials
     $userId = $userModel->verifyCredentials($user, $pass);
 
     if ($userId) {
-        // Login successful
+
         $_SESSION['user_id'] = $userId;
+
+
+        $userRole = $userModel->getRoleById($userId);
+        $_SESSION['role'] = $userRole;
+
         header('Location: index.php'); // Redirect after login
         exit;
     } else {
@@ -45,5 +50,5 @@ if (isset($_POST['login'])) {
     }
 }
 
-// 3. VIEW RENDERING
+// 4. VIEW RENDERING
 require_once('Views/login.phtml');
