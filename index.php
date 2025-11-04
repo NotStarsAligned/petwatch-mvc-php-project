@@ -5,7 +5,7 @@ session_start();
 require_once('Models/UserModel.php');
 require_once('Models/SightingModel.php');
 
-// 1. SETUP
+// SETUP
 $view = new stdClass();
 $view->pageTitle = 'petWatch: Home';
 $view->username = null;
@@ -19,19 +19,20 @@ $sightingModel = new SightingModel();
 require_once('template_init.php');
 
 
-// 2. LOGIN STATE CHECK
+// LOGIN STATE CHECK
 if (isset($_SESSION['user_id'])) {
     $username = $userModel->getUsernameById((int)$_SESSION['user_id']);
     if ($username) {
         $view->isLoggedIn = true;
         $view->username = $username;
     } else {
+        // This just resets the session if a user ID is invalid. A tad bit overkill, but I mean, when has security ever hurt anyone?
         session_destroy();
         session_start();
     }
 }
 
-// 3. SEARCH FILTERS
+// SEARCH FILTERS
 $filters = [
     'name' => trim($_GET['search_name'] ?? ''),
     'species' => trim($_GET['search_type'] ?? ''),
@@ -39,15 +40,15 @@ $filters = [
 ];
 $view->searchParams = $filters;
 
-// 4. PAGINATION SETUP
+//  PAGINATION SETUP
 $itemsPerPage = 6;
 $view->currentPage = max(1, (int)($_GET['page'] ?? 1));
 $offset = ($view->currentPage - 1) * $itemsPerPage;
 
-// 5. FETCH SIGHTINGS
+//  FETCH SIGHTINGS
 $view->totalItems = $sightingModel->countAllSightings($filters);
 $view->sightings = $sightingModel->getAllSightings($filters, $itemsPerPage, $offset);
 $view->totalPages = ceil($view->totalItems / $itemsPerPage);
 
-// 6. VIEW RENDERING
+//  VIEW RENDERING
 require_once('Views/index.phtml');

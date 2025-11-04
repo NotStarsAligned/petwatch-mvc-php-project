@@ -57,8 +57,7 @@ class SightingModel
             FROM sightings s
             JOIN pets p ON s.pet_id = p.id
             JOIN users u ON s.user_id = u.id
-            $where
-        ";
+            $where";
 
         $stmt = $db->prepare($sql);
         $stmt->execute($params);

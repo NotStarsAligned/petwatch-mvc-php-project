@@ -43,8 +43,8 @@
                     <label for="search_status" class="form-label">Status:</label>
                     <select id="search_status" name="search_status" class="form-select form-select-sm">
                         <option value="All" <?= ($view->searchParams['status'] == 'All') ? 'selected' : '' ?>>All</option>
-                        <option value="Missing" <?= ($view->searchParams['status'] == 'Missing') ? 'selected' : '' ?>>Missing</option>
-                        <option value="Sighted" <?= ($view->searchParams['status'] == 'Sighted') ? 'selected' : '' ?>>Sighted</option>
+                        <option value="lost" <?= ($view->searchParams['status'] == 'lost') ? 'selected' : '' ?>>Lost</option>
+                        <option value="found" <?= ($view->searchParams['status'] == 'found') ? 'selected' : '' ?>>Found</option>
                     </select>
                 </div>
 

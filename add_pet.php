@@ -19,17 +19,21 @@ require_once('template_init.php');
 
 
 // --- SECURITY CHECK ---
+
+// I KNOW YOU'RE NOT MEANT TO USE HEADER LOCATION, BUT THIS FEELS JUSTIFIABLE...
+// If you're not logged in, you get sent to the login page, also using getUserNameByID() just handles edge cases
 if (!isset($_SESSION['user_id']) || !$userModel->getUsernameById((int)$_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
 }
 
 $currentUserId = (int)$_SESSION['user_id'];
-$userRole = $userModel->getRoleById($currentUserId);
+$userRole = $userModel->getRoleById($currentUserId); // allows us to actually CHECK what role the user has
 
 if ($userRole !== 'admin') {
     $view->errorMessage = "Access denied. Only owners can add pets.";
     require_once('Views/add_pet.phtml');
+    return;
 }
 
 // --- HANDLE FORM SUBMISSION ---

@@ -4,21 +4,25 @@ session_start();
 
 require_once('Models/UserModel.php');
 
-// 1. SETUP AND INITIALIZATION
+// SETUP AND INITIALIZATION
 $view = new stdClass();
 $view->pageTitle = 'User Login';
 $view->errorMessage = null;
 $view->successMessage = null;
 $view->loginMessage = null;
+$view->logoutMessage = null;
 
 $userModel = new UserModel();
 
-// 2. HANDLE LOGOUT REQUEST (from header form)
+//  HANDLE LOGOUT REQUESTS!!!
 if (isset($_POST['logout'])) {
     session_unset();     // remove all session variables
     session_destroy();   // destroy session
-    header('Location: index.php');
-    exit;
+
+
+    $view->logoutMessage = "You have been logged out successfully. Goodbye o/";
+    require_once('Views/login.phtml');
+    return;
 }
 
 // Redirect if already logged in
@@ -27,7 +31,7 @@ if (isset($_SESSION['user_id']) && $userModel->getUsernameById((int)$_SESSION['u
     exit;
 }
 
-// 3. INPUT HANDLING (Handle Login Submission)
+//  INPUT HANDLING (Handle Login Submission)
 if (isset($_POST['login'])) {
     // Sanitize input
     $user = isset($_POST['username']) ? htmlspecialchars(trim($_POST['username'])) : '';
@@ -37,7 +41,7 @@ if (isset($_POST['login'])) {
     $userId = $userModel->verifyCredentials($user, $pass);
 
     if ($userId) {
-
+        // This just stores the session data for whoever is logged in.
         $_SESSION['user_id'] = $userId;
         $userRole = $userModel->getRoleById($userId);
         $_SESSION['role'] = $userRole;
@@ -55,5 +59,5 @@ if (isset($_POST['login'])) {
     }
 }
 
-// 4. VIEW RENDERING
+// VIEW RENDERING
 require_once('Views/login.phtml');

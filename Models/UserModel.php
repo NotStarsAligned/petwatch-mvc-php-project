@@ -62,6 +62,10 @@ class UserModel
         }
     }
 
+
+    /**
+     * Retrieves the Role by their user ID
+     */
     public function getRoleById(int $userId): ?string
     {
         $db = Database::getInstance()->getdbConnection();

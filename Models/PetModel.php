@@ -14,25 +14,6 @@ class PetModel
     }
 
     /**
-     * Count all pets (with optional filters)
-     */
-    public function countAllPets(array $filters = []): int
-    {
-        $db = $this->getDbConnection();
-        [$where, $params] = $this->buildWhereClause($filters);
-
-        $sql = "SELECT COUNT(id) FROM pets" . ($where ? " WHERE $where" : "");
-        try {
-            $stmt = $db->prepare($sql);
-            $stmt->execute($params);
-            return (int)$stmt->fetchColumn();
-        } catch (PDOException $e) {
-            error_log("Database Error (countAllPets): " . $e->getMessage());
-            return 0;
-        }
-    }
-
-    /**
      * Get all pets with optional filters and pagination
      */
     public function getAllPets(array $filters = [], int $limit = 10, int $offset = 0): array
@@ -62,6 +43,8 @@ class PetModel
 
     /**
      * Fetch a single pet by ID
+     *
+     * TODO: Could potentially see some use later (i doubt anyone is gonna search a pet by their ID but who knows)
      */
     public function getPetById(int $id): ?PetData
     {
@@ -74,33 +57,6 @@ class PetModel
         } catch (PDOException $e) {
             error_log("Database Error (getPetById): " . $e->getMessage());
             return null;
-        }
-    }
-
-    /**
-     * Fetch a limited number of pets for quick preview
-     */
-    public function fetchSomePets(array $filters = [], int $limit = 5): array
-    {
-        $db = $this->getDbConnection();
-        [$where, $params] = $this->buildWhereClause($filters);
-
-        $sql = "SELECT id, name, species, status, description, date_reported 
-                FROM pets" . ($where ? " WHERE $where" : "") .
-            " ORDER BY date_reported DESC LIMIT :limit";
-
-        try {
-            $stmt = $db->prepare($sql);
-            foreach ($params as $key => $value) {
-                $stmt->bindValue(":$key", $value);
-            }
-            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-            $stmt->execute();
-
-            return $stmt->fetchAll(PDO::FETCH_CLASS, 'PetData');
-        } catch (PDOException $e) {
-            error_log("Database Error (fetchSomePets): " . $e->getMessage());
-            return [];
         }
     }
 
@@ -123,14 +79,10 @@ class PetModel
         }
 
         if (!empty($filters['status']) && $filters['status'] !== 'All') {
-            $mapped = match ($filters['status']) {
-                'Missing' => 'lost',
-                'Sighted' => 'found',
-                default => $filters['status']
-            };
             $where[] = "status = :status";
-            $params['status'] = $mapped;
+            $params['status'] = strtolower($filters['status']); // ensures 'Lost'/'Found' → 'lost'/'found'
         }
+
 
         return [implode(' AND ', $where), $params];
     }
@@ -138,6 +90,7 @@ class PetModel
 
     /**
      * Now, you won't believe me when I say this but, it lets you add pets...
+     * It takes in data that'll be handled by the form and performs an insert into SQL statement!
      *
      */
     public function addPet(array $data): bool
@@ -154,6 +107,12 @@ class PetModel
         }
     }
 
+    /**
+     * This uh, you guessed it, deletes the pet! (it runs a simple DELETE FROM sql statement!!)
+     *
+     * Should also mention that it takes the ID to actually delete the correct pet...
+     *
+     */
     public function deletePet(int $id): bool
     {
         $db = $this->getDbConnection();

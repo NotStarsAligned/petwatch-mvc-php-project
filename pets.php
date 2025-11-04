@@ -32,9 +32,8 @@ $_SESSION['role'] = $userRole;
 if ($userRole !== 'admin') {
     $view->errorMessage = "Access denied. Only owners can add pets.";
     require_once('Views/pets.phtml'); // This actually updates the pets page so it hides it when you have the incorrect perms
+    return;
 }
-
-
 
 // Deletes a pet!!
 

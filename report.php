@@ -30,7 +30,7 @@ if (!isset($_SESSION['user_id']) || !$userModel->getUsernameById((int)$_SESSION[
 $currentUserId = (int)$_SESSION['user_id'];
 
 // --- FETCH PETS FOR DROPDOWN ---
-$allPets = $petModel->getAllPets([], 100, 0); // simple limit for selection
+$allPets = $petModel->getAllPets([], 100, 0); // Simple limit for selection
 
 // --- HANDLE FORM SUBMISSION ---
 if (isset($_POST['report_submit'])) {
