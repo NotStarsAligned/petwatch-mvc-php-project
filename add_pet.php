@@ -20,11 +20,11 @@ require_once('template_init.php');
 
 // --- SECURITY CHECK ---
 
-// I KNOW YOU'RE NOT MEANT TO USE HEADER LOCATION, BUT THIS FEELS JUSTIFIABLE...
 // If you're not logged in, you get sent to the login page, also using getUserNameByID() just handles edge cases
 if (!isset($_SESSION['user_id']) || !$userModel->getUsernameById((int)$_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit;
+    $view->errorMessage = 'You are not logged in!';
+    require_once('Views/login.phtml');
+    return;
 }
 
 $currentUserId = (int)$_SESSION['user_id'];

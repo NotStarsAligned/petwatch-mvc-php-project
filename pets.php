@@ -19,10 +19,11 @@ $petModel = new PetModel();
 require_once('template_init.php');
 
 // --- SECURITY CHECK ---
-// When you're not logged in, you get SENT TO INDEX FOR LIFE!!! (also a good way to filter out non-admins :D)
+// When you're not logged in, you get a cool error message yelling at you (also a good way to filter out non-admins :D)
 if (!isset($_SESSION['user_id']) || !$userModel->getUsernameById((int)$_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit;
+    $view->errorMessage = 'You must be logged in to access this page!';
+    require_once('Views/login.phtml');
+    return;
 }
 
 // Responsible for checking if you have the right role!!

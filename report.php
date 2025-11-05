@@ -23,8 +23,9 @@ require_once('template_init.php');
 
 // --- SECURITY CHECK (must be logged in to report) ---
 if (!isset($_SESSION['user_id']) || !$userModel->getUsernameById((int)$_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit;
+    $view->errorMessage = 'You must be logged in to report a Sighting!';
+    require_once('Views/login.phtml');
+    return;
 }
 
 $currentUserId = (int)$_SESSION['user_id'];
