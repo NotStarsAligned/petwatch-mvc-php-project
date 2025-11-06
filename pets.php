@@ -61,7 +61,7 @@ if (isset($_POST['update_pet'])) {
 // Deletes a pet!!
 
 if(isset($_POST['delete_pet']) && isset($_POST['id'])) {
-    $petID = $_POST['id'];
+    $petID = (int)$_POST['id'];
     if ($petModel->deletePet($petID)) {
         $view->successMessage = 'The pet was successfully deleted.';
     } else {

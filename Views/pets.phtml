@@ -53,9 +53,10 @@
                                     </button>
 
                                     <form method="post" action="pets.php" onsubmit="return confirm('Delete this pet?');">
-                                        <input type="hidden" name="delete_pet" value="<?= htmlspecialchars($pet->getId()) ?>">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                        <input type="hidden" name="id" value="<?= htmlspecialchars($pet->getId()) ?>">
+                                        <button type="submit" name="delete_pet" class="btn btn-sm btn-outline-danger">Delete</button>
                                     </form>
+
                                 </div>
 
                                 <!-- Inline Edit Form -->

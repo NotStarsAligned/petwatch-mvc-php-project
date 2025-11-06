@@ -66,10 +66,10 @@
             <?php endif; ?>
 
             <?php foreach ($view->sightings as $sighting):
-                $status_class = ($sighting->status === 'Lost')
+                $status_class = ($sighting->status === 'lost')
                         ? 'bg-danger-subtle border-danger'
                         : 'bg-success-subtle border-success';
-                $status_text_color = ($sighting->status === 'Lost')
+                $status_text_color = ($sighting->status === 'lost')
                         ? 'text-danger'
                         : 'text-success';
                 ?>
