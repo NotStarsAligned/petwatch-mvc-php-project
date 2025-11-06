@@ -127,4 +127,35 @@ class PetModel
         }
     }
 
+    /**
+     * Updates a pet record in the database
+     */
+
+    public function updatePet(int $id, array $data): bool {
+        $db = $this->getDbConnection();
+        $sql = "UPDATE pets
+        SET name = :name,
+            species = :species,
+            breed = :breed,
+            color = :color,
+            photo_url = :photo_url,
+            status = :status,
+            description = :description
+        WHERE id = :id";
+
+    try {
+        $stmt = $db->prepare($sql);
+
+        $data['id'] = $id;
+
+        return $stmt->execute($data);
+    } catch (PDOException $e) {
+        error_log("Database Error (updateOwnedPet): " . $e->getMessage());
+        return false;
+    }
+
+}
+
+
+
 }

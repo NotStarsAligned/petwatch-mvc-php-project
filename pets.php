@@ -36,6 +36,28 @@ if ($userRole !== 'admin') {
     return;
 }
 
+// Updates the pet!!
+
+if (isset($_POST['update_pet'])) {
+    $id = (int)($_POST['pet_id'] ?? 0);
+
+    $data = [
+        'name' => htmlspecialchars(trim($_POST['name'] ?? '')),
+        'species' => htmlspecialchars(trim($_POST['species'] ?? '')),
+        'breed' => htmlspecialchars(trim($_POST['breed'] ?? '')),
+        'color' => htmlspecialchars(trim($_POST['color'] ?? '')),
+        'photo_url' => htmlspecialchars(trim($_POST['photo_url'] ?? '')),
+        'status' => htmlspecialchars(trim($_POST['status'] ?? '')),
+        'description' => htmlspecialchars(trim($_POST['description'] ?? '')),
+    ];
+
+    if($petModel->updatePet($id, $data)) {
+        $view->successMessage = 'Pet has been updated!';
+    } else {
+        $view->errorMessage = 'Failed to update pet!';
+    }
+}
+
 // Deletes a pet!!
 
 if(isset($_POST['delete_pet']) && isset($_POST['id'])) {
