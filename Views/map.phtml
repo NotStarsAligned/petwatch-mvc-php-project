@@ -1,0 +1,751 @@
+<?php require('template/header.phtml'); ?>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<style>
+/* ═══════════════════════════════════════════════════
+   PetWatch Live Map — Page Styles
+   Scoped with .pw- prefix to avoid Bootstrap clashes
+═══════════════════════════════════════════════════ */
+
+/* Layout */
+.pw-layout {
+    display: flex;
+    height: calc(100vh - 70px);
+    margin-top: 70px;
+    overflow: hidden;
+}
+
+/* Sidebar */
+.pw-sidebar {
+    width: 380px;
+    min-width: 320px;
+    display: flex;
+    flex-direction: column;
+    background: #0f1117;
+    color: #e8eaf6;
+    border-right: 2px solid #1e2235;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+    overflow: hidden;
+}
+
+.pw-sidebar__header {
+    padding: 16px 18px 12px;
+    background: #151826;
+    border-bottom: 1px solid #1e2235;
+    flex-shrink: 0;
+}
+
+.pw-sidebar__title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: #fff;
+    letter-spacing: 0.02em;
+}
+
+.pw-sidebar__subtitle {
+    font-size: 0.72rem;
+    color: #7b82a3;
+    margin: 0;
+}
+
+.pw-count-badge {
+    display: inline-block;
+    background: #e74c3c;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 12px;
+    margin-left: 6px;
+    vertical-align: middle;
+    min-width: 22px;
+    text-align: center;
+}
+
+/* Filter bar */
+.pw-filter-bar {
+    padding: 12px 14px;
+    background: #151826;
+    border-bottom: 1px solid #1e2235;
+    flex-shrink: 0;
+}
+
+.pw-filter-bar input,
+.pw-filter-bar select {
+    width: 100%;
+    background: #1e2235;
+    border: 1px solid #2a304d;
+    color: #e8eaf6;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.pw-filter-bar input:focus,
+.pw-filter-bar select:focus {
+    border-color: #4e6ef2;
+    box-shadow: 0 0 0 2px rgba(78, 110, 242, 0.15);
+}
+
+.pw-filter-bar select option {
+    background: #1e2235;
+}
+
+.pw-filter-row {
+    display: flex;
+    gap: 6px;
+}
+
+.pw-filter-row input,
+.pw-filter-row select {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.pw-filter-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.pw-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px 13px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    letter-spacing: 0.02em;
+}
+
+.pw-btn:hover   { opacity: 0.88; }
+.pw-btn:active  { transform: scale(0.97); }
+
+.pw-btn--primary  { background: #4e6ef2; color: #fff; flex: 1; }
+.pw-btn--ghost    { background: transparent; color: #7b82a3; border: 1px solid #2a304d; }
+.pw-btn--sm       { padding: 4px 10px; font-size: 0.72rem; }
+
+/* Sightings list */
+.pw-sightings-list {
+    flex: 1;
+    overflow-y: auto;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    scrollbar-width: thin;
+    scrollbar-color: #2a304d transparent;
+}
+
+.pw-sightings-list::-webkit-scrollbar       { width: 4px; }
+.pw-sightings-list::-webkit-scrollbar-thumb { background: #2a304d; border-radius: 2px; }
+
+.pw-list__item {
+    padding: 14px 16px;
+    border-bottom: 1px solid #1e2235;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-left: 3px solid transparent;
+}
+
+.pw-list__item:hover                { background: #151c2e; }
+.pw-list__item--active              { background: #151c2e; border-left-color: #4e6ef2; }
+.pw-list__item--lost                { border-left-color: transparent; }
+.pw-list__item--lost:hover,
+.pw-list__item--lost.pw-list__item--active   { border-left-color: #e74c3c; }
+.pw-list__item--found:hover,
+.pw-list__item--found.pw-list__item--active  { border-left-color: #2ecc71; }
+
+@keyframes pw-slide-in {
+    from { opacity: 0; transform: translateX(-12px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+.pw-list__item--new { animation: pw-slide-in 0.4s ease; }
+
+.pw-list__item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2px;
+}
+
+.pw-list__pet-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #fff;
+}
+
+.pw-list__status {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.pw-list__species {
+    font-size: 0.72rem;
+    color: #7b82a3;
+    margin-bottom: 5px;
+    text-transform: capitalize;
+}
+
+.pw-list__comment {
+    font-size: 0.8rem;
+    color: #adb5d3;
+    margin: 0 0 8px;
+    font-style: italic;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.pw-list__footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    color: #55607a;
+}
+
+/* Skeleton loading */
+.pw-list__skeleton {
+    padding: 14px 16px;
+    border-bottom: 1px solid #1e2235;
+}
+
+@keyframes pw-shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+
+.pw-skeleton__line {
+    border-radius: 4px;
+    background: linear-gradient(90deg, #1e2235 25%, #252b42 50%, #1e2235 75%);
+    background-size: 800px 100%;
+    animation: pw-shimmer 1.4s infinite;
+    margin-bottom: 8px;
+}
+
+.pw-skeleton__line--title { height: 14px; width: 60%; }
+.pw-skeleton__line--sub   { height: 10px; width: 35%; }
+.pw-skeleton__line--body  { height: 10px; width: 85%; }
+
+/* Empty / error state */
+.pw-list__empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: #55607a;
+    font-size: 0.85rem;
+    list-style: none;
+}
+
+.pw-list__empty span { font-size: 2rem; display: block; margin-bottom: 10px; }
+.pw-list__empty p    { margin: 0; line-height: 1.5; }
+.pw-list__empty--error { color: #e87c7c; }
+
+/* Map container */
+.pw-map-container {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+#pw-map {
+    flex: 1;
+    z-index: 1;
+}
+
+/* Map toolbar */
+.pw-map-toolbar {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.pw-map-toolbar .pw-btn {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    background: #151826;
+    color: #e8eaf6;
+    border: 1px solid #2a304d;
+    white-space: nowrap;
+}
+
+.pw-map-toolbar .pw-btn:hover { background: #1e2235; }
+
+/* Location status bar */
+.pw-location-status {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 400;
+    background: rgba(15, 17, 23, 0.82);
+    color: #7b82a3;
+    font-size: 0.72rem;
+    padding: 4px 12px;
+    backdrop-filter: blur(6px);
+}
+
+/* Map click hint */
+.pw-hint {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 500;
+    background: rgba(78, 110, 242, 0.92);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 20px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+    backdrop-filter: blur(6px);
+}
+
+.pw-hint--active { opacity: 1; }
+
+/* Add Sighting panel (authenticated users only) */
+.pw-add-panel {
+    border-top: 1px solid #1e2235;
+    background: #0c0f1a;
+    flex-shrink: 0;
+}
+
+.pw-add-panel__toggle {
+    width: 100%;
+    padding: 10px 16px;
+    background: #151826;
+    border: none;
+    color: #4e9ef2;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.15s;
+    letter-spacing: 0.03em;
+}
+
+.pw-add-panel__toggle:hover  { background: #1e2235; }
+.pw-add-panel__toggle .arrow { transition: transform 0.25s; font-style: normal; }
+.pw-add-panel__toggle.open .arrow { transform: rotate(180deg); }
+
+.pw-add-panel__body {
+    padding: 14px 16px;
+    display: none;
+}
+
+.pw-add-panel__body.open { display: block; }
+
+.pw-form__group {
+    margin-bottom: 10px;
+}
+
+.pw-form__label {
+    display: block;
+    font-size: 0.72rem;
+    color: #7b82a3;
+    margin-bottom: 4px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.pw-form__control {
+    width: 100%;
+    background: #1e2235;
+    border: 1px solid #2a304d;
+    color: #e8eaf6;
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 0.8rem;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.pw-form__control:focus {
+    border-color: #4e6ef2;
+    box-shadow: 0 0 0 2px rgba(78, 110, 242, 0.15);
+}
+
+.pw-form__control option { background: #1e2235; }
+
+textarea.pw-form__control {
+    resize: vertical;
+    min-height: 72px;
+    font-family: inherit;
+}
+
+.pw-form__coords-display {
+    font-size: 0.72rem;
+    color: #55607a;
+    background: #13162a;
+    border: 1px dashed #2a304d;
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-top: 4px;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.pw-form__coords-display--set {
+    color: #4e9ef2;
+    border-color: #4e6ef2;
+    border-style: solid;
+}
+
+.pw-form__status {
+    font-size: 0.78rem;
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    min-height: 20px;
+}
+
+.pw-form__status--success { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
+.pw-form__status--error   { background: rgba(231, 76, 60, 0.15);  color: #e74c3c; }
+
+/* ── Leaflet popup overrides ── */
+.pw-popup .leaflet-popup-content-wrapper {
+    background: #151826;
+    border: 1px solid #2a304d;
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    color: #e8eaf6;
+    padding: 0;
+    overflow: hidden;
+}
+
+.pw-popup .leaflet-popup-tip { background: #151826; }
+.pw-popup .leaflet-popup-close-button { color: #7b82a3; padding: 8px 10px; }
+
+.pw-popup__inner { padding: 14px 16px; min-width: 220px; }
+
+.pw-popup__header {
+    margin-bottom: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.pw-popup__name    { font-weight: 700; color: #fff; font-size: 1rem; display: block; width: 100%; }
+.pw-popup__species { font-size: 0.72rem; color: #7b82a3; text-transform: capitalize; }
+
+.pw-badge {
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    letter-spacing: 0.08em;
+}
+
+.pw-badge--lost  { background: rgba(231, 76, 60, 0.2);  color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
+.pw-badge--found { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid rgba(46,204,113,0.3); }
+
+.pw-popup__comment {
+    font-style: italic;
+    font-size: 0.82rem;
+    color: #adb5d3;
+    border-left: 2px solid #2a304d;
+    padding-left: 10px;
+    margin: 0 0 10px;
+    line-height: 1.5;
+}
+
+.pw-popup__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.72rem;
+    color: #7b82a3;
+    margin-bottom: 6px;
+}
+
+.pw-popup__coords { font-size: 0.68rem; color: #55607a; }
+
+/* ── Custom markers ── */
+.pw-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+}
+
+.pw-marker svg {
+    width: 32px;
+    height: 40px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+    transition: transform 0.15s;
+}
+
+.pw-marker:hover svg { transform: scale(1.15) translateY(-2px); }
+
+.pw-marker__label {
+    font-size: 9px;
+    font-weight: 700;
+    color: white;
+    background: rgba(0,0,0,0.65);
+    padding: 1px 4px;
+    border-radius: 3px;
+    margin-top: 1px;
+    max-width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+
+/* You-are-here marker */
+.pw-you-marker {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pw-you-marker__dot {
+    width: 12px;
+    height: 12px;
+    background: #4e6ef2;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(78, 110, 242, 0.4);
+    z-index: 2;
+}
+
+@keyframes pw-pulse {
+    0%   { transform: scale(1);   opacity: 0.7; }
+    100% { transform: scale(2.8); opacity: 0; }
+}
+
+.pw-you-marker__pulse {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #4e6ef2;
+    border-radius: 50%;
+    animation: pw-pulse 1.8s ease-out infinite;
+}
+
+/* Click-to-place crosshair marker */
+.pw-crosshair-marker {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pw-crosshair-marker__dot {
+    width: 10px;
+    height: 10px;
+    background: #f39c12;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    z-index: 2;
+}
+
+@keyframes pw-ring-pulse {
+    0%   { transform: scale(1);   opacity: 0.8; }
+    100% { transform: scale(2.2); opacity: 0; }
+}
+
+.pw-crosshair-marker__ring {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #f39c12;
+    border-radius: 50%;
+    animation: pw-ring-pulse 1.2s ease-out infinite;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .pw-layout      { flex-direction: column; height: auto; min-height: calc(100vh - 70px); }
+    .pw-sidebar     { width: 100%; min-width: unset; height: 45vh; border-right: none; border-bottom: 2px solid #1e2235; transform: none; }
+    .pw-map-container { height: 55vh; }
+    #pw-map         { height: 100%; }
+    .pw-map-toolbar { top: 8px; right: 8px; }
+}
+</style>
+
+<!-- ─────────────────────────────────────────
+     Page Layout
+──────────────────────────────────────────── -->
+<div class="pw-layout">
+
+    <!-- ══ SIDEBAR ══ -->
+    <aside class="pw-sidebar" id="pw-sidebar">
+
+        <!-- Header -->
+        <div class="pw-sidebar__header">
+            <h2 class="pw-sidebar__title">
+                🐾 Live Sightings
+                <span class="pw-count-badge" id="pw-sightings-count">…</span>
+            </h2>
+            <p class="pw-sidebar__subtitle">Click a sighting to fly to its location</p>
+        </div>
+
+        <!-- Filter Bar -->
+        <form id="pw-filter-bar" class="pw-filter-bar" onsubmit="return false;">
+            <div class="pw-filter-row">
+                <input type="text"  name="filter_name"    placeholder="🔍 Pet name…"  autocomplete="off">
+                <input type="text"  name="filter_species" placeholder="🐈 Species…"   autocomplete="off">
+            </div>
+            <select name="filter_status" title="Filter by status">
+                <option value="lost">🔴 Missing only</option>
+                <option value="found">🟢 Sighted only</option>
+                <option value="">All statuses</option>
+            </select>
+            <div class="pw-filter-actions">
+                <button type="button" class="pw-btn pw-btn--ghost pw-btn--sm"
+                        data-action="clear-filters">✕ Clear</button>
+                <button type="button" class="pw-btn pw-btn--ghost pw-btn--sm"
+                        data-action="fit-markers">⤢ Fit all</button>
+            </div>
+        </form>
+
+        <!-- Sightings List -->
+        <ul class="pw-sightings-list" id="pw-sightings-list">
+            <!-- Populated by JS -->
+        </ul>
+
+        <!-- ── Add Sighting Form (authenticated users only) ── -->
+        <?php if ($view->isLoggedIn): ?>
+        <div class="pw-add-panel" id="pw-add-panel">
+            <button type="button" class="pw-add-panel__toggle" id="pw-form-toggle">
+                <span>➕ Report a Sighting</span>
+                <em class="arrow">▾</em>
+            </button>
+            <div class="pw-add-panel__body" id="pw-form-body">
+                <form id="pw-add-sighting-form">
+
+                    <!-- Hidden coords — set by map click -->
+                    <input type="hidden" name="latitude">
+                    <input type="hidden" name="longitude">
+
+                    <div class="pw-form__status" role="alert" aria-live="polite"></div>
+
+                    <div class="pw-form__group">
+                        <label class="pw-form__label">Select Pet</label>
+                        <select name="pet_id" class="pw-form__control" required>
+                            <option value="">Loading pets…</option>
+                        </select>
+                    </div>
+
+                    <div class="pw-form__group">
+                        <label class="pw-form__label">Sighting Comment</label>
+                        <textarea name="comment"
+                                  class="pw-form__control"
+                                  placeholder="e.g. Spotted near the Piccadilly tram stop, heading north…"
+                                  required
+                                  maxlength="500"></textarea>
+                    </div>
+
+                    <div class="pw-form__group">
+                        <label class="pw-form__label">Location</label>
+                        <div class="pw-form__coords-display">
+                            📍 Click anywhere on the map to set location
+                        </div>
+                    </div>
+
+                    <button type="submit" class="pw-btn pw-btn--primary" style="width:100%">
+                        Submit Sighting
+                    </button>
+                </form>
+            </div>
+        </div>
+        <?php else: ?>
+        <div style="padding:12px 16px; font-size:0.78rem; color:#55607a; border-top:1px solid #1e2235;">
+            <a href="login.php" style="color:#4e9ef2; text-decoration:none; font-weight:600;">Log in</a>
+            to report a sighting.
+        </div>
+        <?php endif; ?>
+
+    </aside>
+
+    <!-- ══ MAP AREA ══ -->
+    <div class="pw-map-container">
+
+        <!-- Map canvas -->
+        <div id="pw-map"></div>
+
+        <!-- Toolbar (floating, top-right) -->
+        <div class="pw-map-toolbar">
+            <button class="pw-btn pw-btn--sm" data-action="locate-me"    title="Centre on my location">📡 Locate me</button>
+            <button class="pw-btn pw-btn--sm" data-action="toggle-sidebar" title="Toggle sidebar">☰ List</button>
+        </div>
+
+        <!-- Click-to-place hint (appears after user clicks map when logged in) -->
+        <?php if ($view->isLoggedIn): ?>
+        <div class="pw-hint" id="pw-map-click-hint">
+            📍 Location set — fill in the form and submit
+        </div>
+        <?php endif; ?>
+
+        <!-- Location status bar (bottom of map) -->
+        <div class="pw-location-status" id="pw-location-status">
+            📡 Initialising map…
+        </div>
+    </div>
+
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- PetWatch OO Map JS -->
+<script src="js/PetWatchMap.js"></script>
+
+<script>
+    // ── Bootstrap the map application ──
+    // Config is injected server-side; all sensitive values stay in PHP.
+    document.addEventListener('DOMContentLoaded', function () {
+        window.initPetWatchMap({
+            // Path from the page (map.php) to the api/ directory
+            apiBase:    'api/',
+
+            // CSRF token from the PHP session — embedded as JS string
+            // htmlspecialchars prevents XSS if the token ever contained odd chars
+            csrfToken:  <?= json_encode($view->csrfToken ?? '') ?>,
+
+            // Whether the current user is authenticated (controls form UX)
+            isLoggedIn: <?= $view->isLoggedIn ? 'true' : 'false' ?>,
+
+            // Fallback map centre (Manchester city centre)
+            defaultLat:  53.4808,
+            defaultLng:  -2.2426,
+            defaultZoom: 13,
+        });
+    });
+</script>
+
+<?php require('template/footer.phtml'); ?>

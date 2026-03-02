@@ -1,5 +1,18 @@
 <?php require('template/header.phtml') ?>
 
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<style>
+    /* Map container sits between the nav and the rest of the page */
+    #pw-map {
+        height: 420px;
+        width: 100%;
+        border-top: 3px solid #dc3545;
+        border-bottom: 3px solid #dc3545;
+    }
+</style>
+
 <div class="container mt-5">
 
     <?php if (isset($view->loginMessage)): ?>
@@ -20,7 +33,15 @@
     <hr>
     <h3 class="text-center mb-4">Recent Pet Sightings</h3>
 
-    <!-- Search / Filter -->
+</div>
+
+<!-- ── Live Map ── -->
+<!-- Sits outside .container so it spans the full page width -->
+<div id="pw-map"></div>
+
+<div class="container mt-4">
+
+    <!-- Search / Filter — unchanged from original -->
     <section id="sighting-search" class="mb-4 p-3 border rounded shadow-sm bg-light">
         <h4>Filter Sightings</h4>
         <form method="GET" action="index.php">
@@ -58,7 +79,7 @@
 
     <p class="mb-3 text-muted">Displaying <?= count($view->sightings) ?> of <?= $view->totalItems ?> total results.</p>
 
-    <!-- Sightings list -->
+    <!-- Sightings card list — unchanged from original -->
     <section id="sighting-listings">
         <div class="row">
             <?php if (empty($view->sightings)): ?>
@@ -96,7 +117,7 @@
         </div>
     </section>
 
-    <!-- Pagination -->
+    <!-- Pagination — unchanged from original -->
     <?php if ($view->totalPages > 1): ?>
         <nav aria-label="Page navigation" class="mt-4">
             <ul class="pagination justify-content-center">
@@ -126,5 +147,19 @@
     <?php endif; ?>
 
 </div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- PetWatch Map JS -->
+<script src="../js/PetWatchMap.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        initPetWatchMap({
+            apiBase: 'api/'
+        });
+    });
+</script>
 
 <?php require('template/footer.phtml') ?>
