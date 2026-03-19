@@ -10,7 +10,7 @@
 </head>
 
 <?php
-echo "<!-- Debug: Role is " . htmlspecialchars($_SESSION['role'] ?? 'not set') . " -->";
+// REMOVED: debug role echo that was here — exposes session role in HTML source
 ?>
 
 <body class="d-flex flex-column h-100">
@@ -35,6 +35,11 @@ echo "<!-- Debug: Role is " . htmlspecialchars($_SESSION['role'] ?? 'not set') .
                 <ul class="navbar-nav mb-2 mb-md-0">
                     <li class="nav-item">
                         <a class="nav-link <?= $currentPage === 'index.php' ? 'active' : '' ?>" href="index.php">Home</a>
+                    </li>
+
+                    <!-- ADDED: Live Map link — visible to all users -->
+                    <li class="nav-item">
+                        <a class="nav-link <?= $currentPage === 'map.php' ? 'active' : '' ?>" href="map.php">🗺 Live Map</a>
                     </li>
 
                     <?php if ($isLoggedIn): ?>

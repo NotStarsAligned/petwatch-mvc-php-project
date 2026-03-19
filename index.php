@@ -25,12 +25,19 @@ if (isset($_SESSION['user_id'])) {
     if ($username) {
         $view->isLoggedIn = true;
         $view->username = $username;
+
+        // Generate CSRF token for the AJAX sighting form in the map popups
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
     } else {
-        // This just resets the session if a user ID is invalid. A tad bit overkill, but I mean, when has security ever hurt anyone?
         session_destroy();
         session_start();
     }
 }
+
+// Generate AJAX search token for LiveSearch.js - regenerated on each page load.
+$_SESSION['ajaxToken'] = substr(str_shuffle(MD5(microtime())), 0, 20);
 
 // SEARCH FILTERS
 $filters = [

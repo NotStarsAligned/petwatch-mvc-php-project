@@ -35,9 +35,10 @@
 
 </div>
 
-<!-- ── Live Map ── -->
+<!-- Live Map -->
 <!-- Sits outside .container so it spans the full page width -->
 <div id="pw-map"></div>
+<div id="pw-location-status" style="font-size:0.75rem; color:#6c757d; padding:4px 12px; background:#f8f9fa; border-bottom:1px solid #dee2e6;"></div>
 
 <div class="container mt-4">
 
@@ -95,7 +96,9 @@
                         : 'text-success';
                 ?>
                 <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100 <?= $status_class ?> border-start border-4 shadow-sm">
+                    <div class="card h-100 <?= $status_class ?> border-start border-4 shadow-sm"
+                         data-sighting-id="<?= htmlspecialchars($sighting->id) ?>"
+                         style="cursor:pointer;" title="Click to show on map">
                         <div class="card-body">
                             <h5 class="card-title d-flex justify-content-between align-items-center">
                                 <?= htmlspecialchars($sighting->pet_name) ?>
@@ -108,8 +111,10 @@
                                 <strong>Location:</strong> <?= htmlspecialchars($sighting->latitude) ?>, <?= htmlspecialchars($sighting->longitude) ?><br>
                                 <strong>Time:</strong> <?= htmlspecialchars($sighting->timestamp) ?>
                             </p>
-
-                            <p class="text-muted small mb-0">Sighting ID: <?= htmlspecialchars($sighting->id) ?></p>
+                            <p class="text-muted small mb-0">
+                                Sighting ID: <?= htmlspecialchars($sighting->id) ?>
+                                &nbsp;·&nbsp; <span style="color:#0d6efd;">📍 Click card to show on map</span>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -152,13 +157,28 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <!-- PetWatch Map JS -->
-<script src="../js/PetWatchMap.js"></script>
+<script src="js/PetWatchMap.js"></script>
+
+<!-- Live Search JS -->
+<script src="js/LiveSearch.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+
+        // Initialise the map
         initPetWatchMap({
-            apiBase: 'api/'
+            apiBase:    'api/',
+            isLoggedIn: <?= !empty($_SESSION['user_id']) ? 'true' : 'false' ?>,
+            csrfToken:  <?= json_encode($_SESSION['csrf_token'] ?? '') ?>
         });
+
+        // Initialise live search - wires to the existing filter bar inputs
+        // and updates the card grid + map simultaneously without page reload.
+        // Token generated in index.php follows Protecting AJAX Scripts pattern.
+        new LiveSearch(
+            'api/',
+            <?= json_encode($_SESSION['ajaxToken'] ?? '') ?>
+        );
     });
 </script>
 
