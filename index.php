@@ -18,7 +18,6 @@ $sightingModel = new SightingModel();
 // --- Template Init ---
 require_once('template_init.php');
 
-
 // LOGIN STATE CHECK
 if (isset($_SESSION['user_id'])) {
     $username = $userModel->getUsernameById((int)$_SESSION['user_id']);

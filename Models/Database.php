@@ -28,18 +28,15 @@ class Database {
      */
     private function __construct() {
         try {
+                $host = 'localhost';
+                $user = 'sge425';
+                $password = 'Q4eEWog3bSsJZTl';
+                $dbName = 'idunno';
 
-            $databaseFile = __DIR__ . '/../petwatch.sqlite';
-            if (!file_exists($databaseFile)) {
-                throw new Exception("Database file not found: " . $databaseFile);
-            }
+                $this->_dbHandle = new PDO("mysql:host=$host;dbname=$dbName", $user, $password,[PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+                $this->_dbHandle->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
 
-            // Initialize PDO connection
-            $this->_dbHandle = new PDO("sqlite:" . $databaseFile);
-            $this->_dbHandle->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->_dbHandle->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
-
-        } catch (PDOException $e) {
+            } catch (PDOException $e) {
             echo "Database connection failed: " . $e->getMessage();
             exit;
         } catch (Exception $e) {
@@ -54,12 +51,5 @@ class Database {
      */
     public function getdbConnection(): PDO {
         return $this->_dbHandle;
-    }
-
-    /**
-     * Destructor: closes the PDO connection
-     */
-    public function __destruct() {
-        $this->_dbHandle = null;
     }
 }

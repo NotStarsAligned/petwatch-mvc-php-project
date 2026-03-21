@@ -36,13 +36,12 @@
 </div>
 
 <!-- Live Map -->
-<!-- Sits outside .container so it spans the full page width -->
 <div id="pw-map"></div>
 <div id="pw-location-status" style="font-size:0.75rem; color:#6c757d; padding:4px 12px; background:#f8f9fa; border-bottom:1px solid #dee2e6;"></div>
 
 <div class="container mt-4">
 
-    <!-- Search / Filter — unchanged from original -->
+    <!-- Search / Filter -->
     <section id="sighting-search" class="mb-4 p-3 border rounded shadow-sm bg-light">
         <h4>Filter Sightings</h4>
         <form method="GET" action="index.php">
@@ -80,7 +79,7 @@
 
     <p class="mb-3 text-muted">Displaying <?= count($view->sightings) ?> of <?= $view->totalItems ?> total results.</p>
 
-    <!-- Sightings card list — unchanged from original -->
+    <!-- Sightings card list -->
     <section id="sighting-listings">
         <div class="row">
             <?php if (empty($view->sightings)): ?>
@@ -122,7 +121,7 @@
         </div>
     </section>
 
-    <!-- Pagination — unchanged from original -->
+    <!-- Pagination -->
     <?php if ($view->totalPages > 1): ?>
         <nav aria-label="Page navigation" class="mt-4">
             <ul class="pagination justify-content-center">
@@ -172,9 +171,6 @@
             csrfToken:  <?= json_encode($_SESSION['csrf_token'] ?? '') ?>
         });
 
-        // Initialise live search - wires to the existing filter bar inputs
-        // and updates the card grid + map simultaneously without page reload.
-        // Token generated in index.php follows Protecting AJAX Scripts pattern.
         new LiveSearch(
             'api/',
             <?= json_encode($_SESSION['ajaxToken'] ?? '') ?>

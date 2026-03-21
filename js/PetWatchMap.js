@@ -12,11 +12,6 @@
 
 'use strict';
 
-
-//  GeoLocation
-//  Wraps the browser Geolocation API in a reusable class.
-//  Keeps location logic separate from the map
-
 class GeoLocation {
 
     constructor() {
@@ -50,20 +45,13 @@ class GeoLocation {
     }
 }
 
-
-
-//  SightingMap
-//  Manages the Leaflet map — setup, markers, filters, and
-//  the list-to-map focus feature (clicking a card flies the map).
-
-
 class SightingMap {
 
     constructor(mapElementId, apiBase) {
         this.mapElementId = mapElementId;
         this.apiBase = apiBase; // path to api/ folder
         this.map = null;
-        this.markers = {}; // sighting id -> Leaflet circleMarker
+        this.markers = {};
         this.sightings = [];
 
         this.geoLocation = new GeoLocation();
@@ -90,9 +78,6 @@ class SightingMap {
         }).addTo(this.map);
     }
 
-    // Geolocation
-
-    // Centre the map on the user's real location
     _centreOnUserLocation() {
         const statusEl = document.getElementById('pw-location-status');
 
@@ -128,15 +113,15 @@ class SightingMap {
         if (statusEl) statusEl.textContent = 'Location unavailable — showing Manchester';
     }
 
-    //  AJAX marker loading
+    // AJAX marker loading
 
     // Fetch sightings via ajax.php?cmd=getdata and render markers.
     // Accepts optional filters from the filter bar.
     _loadMarkers(filters = {}) {
         const params = new URLSearchParams({ cmd: 'getdata' });
-        if (filters.name) params.set('name',    filters.name);
+        if (filters.name) params.set('name', filters.name);
         if (filters.species) params.set('species', filters.species);
-        if (filters.status && filters.status !== 'All') params.set('status',  filters.status);
+        if (filters.status && filters.status !== 'All') params.set('status', filters.status);
 
         fetch(this.apiBase + 'ajax.php?' + params.toString(), {
             credentials: 'same-origin'
@@ -162,11 +147,11 @@ class SightingMap {
             const isLost = sighting.status === 'lost';
 
             const marker = L.circleMarker([sighting.lat, sighting.lng], {
-                radius:      10,
-                color:       isLost ? '#e74c3c' : '#2ecc71',
-                fillColor:   isLost ? '#e74c3c' : '#2ecc71',
+                radius: 10,
+                color: isLost ? '#e74c3c' : '#2ecc71',
+                fillColor: isLost ? '#e74c3c' : '#2ecc71',
                 fillOpacity: 0.8,
-                weight:      2
+                weight: 2
             });
 
             // Popup includes a placeholder div for the sighting form (logged-in users)
@@ -246,9 +231,9 @@ class SightingMap {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
                 const filters = {
-                    name:    filterForm.querySelector('[name="search_name"]')?.value.trim()  || '',
-                    species: filterForm.querySelector('[name="search_type"]')?.value.trim()  || '',
-                    status:  filterForm.querySelector('[name="search_status"]')?.value       || 'All',
+                    name:    filterForm.querySelector('[name="search_name"]')?.value.trim() || '',
+                    species: filterForm.querySelector('[name="search_type"]')?.value.trim() || '',
+                    status:  filterForm.querySelector('[name="search_status"]')?.value || 'All',
                 };
                 this._loadMarkers(filters);
             }, 400);
@@ -271,9 +256,9 @@ class SightingMap {
 class SightingForm {
 
     constructor(apiBase, csrfToken) {
-        this.apiBase   = apiBase;
+        this.apiBase = apiBase;
         this.csrfToken = csrfToken;
-        this.pets      = []; // cached from ajax.php?cmd=getpets
+        this.pets = []; // cached from ajax.php?cmd=getpets
 
         this._loadPets();
     }
@@ -323,7 +308,7 @@ class SightingForm {
                     ${options}
                 </select>
                 <textarea name="comment"
-                    placeholder='e.g. "Spotted near Piccadilly Gardens heading north…"'
+                    placeholder='Enter Sighting Details Here...'
                     rows="3" maxlength="500"
                     style="width:100%; padding:4px; font-size:0.8rem; resize:vertical; box-sizing:border-box;"
                     required></textarea>
@@ -339,8 +324,8 @@ class SightingForm {
 
     // Submit via ajax.php?cmd=add with CSRF token in header
     _handleSubmit(form, sighting, marker) {
-        const petId     = parseInt(form.querySelector('[name="pet_id"]')?.value) || 0;
-        const comment   = form.querySelector('[name="comment"]')?.value.trim()  || '';
+        const petId = parseInt(form.querySelector('[name="pet_id"]')?.value) || 0;
+        const comment= form.querySelector('[name="comment"]')?.value.trim()  || '';
         const statusDiv = form.querySelector('.pw-form-status');
 
         // Client-side validation before hitting the server
@@ -354,16 +339,16 @@ class SightingForm {
 
         // POST to the single ajax.php endpoint using cmd=add
         fetch(this.apiBase + 'ajax.php?cmd=add', {
-            method:      'POST',
+            method: 'POST',
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-Token': this.csrfToken  // CSRF token in header — not a cookie
             },
             body: JSON.stringify({
-                pet_id:    petId,
-                comment:   comment,
-                latitude:  latlng.lat,
+                pet_id: petId,
+                comment: comment,
+                latitude: latlng.lat,
                 longitude: latlng.lng
             })
         })
@@ -378,7 +363,7 @@ class SightingForm {
                 form.parentElement.innerHTML = `
                 <hr style="margin:10px 0">
                 <p style="color:#198754; font-size:0.85rem; margin:0;">
-                    ✅ Sighting submitted! Thank you.
+                      Sighting submitted! Thank you.
                 </p>`;
             })
             .catch(err => {

@@ -1,11 +1,7 @@
 /**
  * LiveSearch.js
  *
- * Live AJAX search - enhances the existing filter bar
- * on index.php. As the user types, results update instantly without
- * a page reload, updating both the sightings card grid and the map.
- *
- *
+ * Live AJAX search - As the user types, the results update without needing to reload the page
  * - XMLHttpRequest with onreadystatechange
  * - JSON.parse and forEach to render results
  * - Token security on the search endpoint
@@ -20,8 +16,8 @@ class LiveSearch {
      * @param {string} ajaxToken - Security token from PHP session
      */
     constructor(apiBase, ajaxToken) {
-        this.apiBase    = apiBase;
-        this.ajaxToken  = ajaxToken;
+        this.apiBase = apiBase;
+        this.ajaxToken = ajaxToken;
 
         // The existing DOM elements on index.php
         this.nameInput = document.getElementById('search_name');
@@ -35,7 +31,6 @@ class LiveSearch {
         this.activeXhr = null;
         this.debounceTimer = null;
 
-        // Flag - true when live search has taken over from PHP pagination
         this.isLiveMode = false;
 
         if (!this.nameInput || !this.cardGrid) {
@@ -51,11 +46,11 @@ class LiveSearch {
     _bindEvents() {
         // Debounced keyup on text inputs
         // "UI text control which triggers events when changed"
-        this.nameInput.addEventListener('keyup',    () => this._onFilterChange());
-        this.speciesInput.addEventListener('keyup', () => this._onFilterChange());
+        this.nameInput.addEventListener('keyup',()=>this._onFilterChange());
+        this.speciesInput.addEventListener('keyup',() => this._onFilterChange());
 
         // Instant response on select change
-        this.statusSelect.addEventListener('change', () => this._onFilterChange());
+        this.statusSelect.addEventListener('change',() => this._onFilterChange());
 
         // When the Clear link is clicked, restore PHP-rendered results
         const clearLink = document.querySelector('a[href="index.php"]');
@@ -105,11 +100,11 @@ class LiveSearch {
 
         var url = this.apiBase + 'ajax.php'
             + '?cmd=search'
-            + '&name='    + encodeURIComponent(name)
+            + '&name=' + encodeURIComponent(name)
             + '&species=' + encodeURIComponent(species)
-            + '&status='  + encodeURIComponent(status === 'All' ? '' : status)
+            + '&status=' + encodeURIComponent(status === 'All' ? '' : status)
             + '&limit=50'
-            + '&token='   + encodeURIComponent(this.ajaxToken);
+            + '&token=' + encodeURIComponent(this.ajaxToken);
 
         this._showLoading();
 
@@ -183,12 +178,12 @@ class LiveSearch {
 
     // Build a single card matching the exact Bootstrap markup from index.phtml
     _buildCard(sighting) {
-        var isLost       = sighting.status === 'lost';
-        var statusClass  = isLost ? 'bg-danger-subtle border-danger'   : 'bg-success-subtle border-success';
-        var textColor    = isLost ? 'text-danger'                       : 'text-success';
-        var statusLabel  = isLost ? 'lost'                              : 'found';
+        var isLost = sighting.status === 'lost';
+        var statusClass= isLost ? 'bg-danger-subtle border-danger' : 'bg-success-subtle border-success';
+        var textColor= isLost ? 'text-danger' : 'text-success';
+        var statusLabel= isLost ? 'lost' : 'found';
 
-        var col  = document.createElement('div');
+        var col = document.createElement('div');
         col.className = 'col-md-6 col-lg-4 mb-4';
 
         var card = document.createElement('div');
@@ -206,9 +201,9 @@ class LiveSearch {
             '</h5>' +
             '<p class="card-text mb-2">' +
             '<strong>Reported by:</strong> ' + sighting.username + '<br>' +
-            '<strong>Comment:</strong> '     + sighting.comment  + '<br>' +
-            '<strong>Location:</strong> '    + sighting.lat + ', ' + sighting.lng + '<br>' +
-            '<strong>Time:</strong> '        + sighting.timestamp +
+            '<strong>Comment:</strong> ' + sighting.comment  + '<br>' +
+            '<strong>Location:</strong> ' + sighting.lat + ', ' + sighting.lng + '<br>' +
+            '<strong>Time:</strong> ' + sighting.timestamp +
             '</p>' +
             '<p class="text-muted small mb-0">' +
             'Sighting ID: ' + sighting.id +
